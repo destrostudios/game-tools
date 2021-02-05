@@ -1,7 +1,7 @@
 package com.destrostudios.turnbasedgametools.network.client;
 
 import com.destrostudios.turnbasedgametools.network.shared.GameService;
-import com.destrostudios.turnbasedgametools.network.shared.KryoUtil;
+import com.destrostudios.turnbasedgametools.network.shared.NetworkUtil;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameAction;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameActionRequest;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameSpectateAck;
@@ -12,23 +12,20 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class GamesClient {
+public class GamesClient<S, A> {
     private final Client client;
-    private final Map<Class<?>, GameService<?, ?>> gameServices = new HashMap<>();
-    private final Map<UUID, ClientGameData> games = new ConcurrentHashMap<>();
+    private final GameService<S, A> gameService;
+    private final Map<UUID, ClientGameData<S, A>> games = new ConcurrentHashMap<>();
 
-    public GamesClient(String host, int port, int timeout, GameService<?, ?>... gameServices) throws IOException {
+    public GamesClient(String host, int port, int timeout, GameService<S, A> service) throws IOException {
+        gameService = service;
         client = new Client();
-        KryoUtil.init(client.getKryo());
-        for (GameService<?, ?> gameService : gameServices) {
-            this.gameServices.put(gameService.getStateClass(), gameService);
-            gameService.initialize(client.getKryo());
-        }
+        NetworkUtil.initialize(client.getKryo());
+        gameService.initialize(client.getKryo());
         client.addListener(new Listener() {
             @Override
             public void connected(Connection connection) {
@@ -44,12 +41,11 @@ public class GamesClient {
             public void received(Connection connection, Object object) {
                 if (object instanceof GameSpectateAck) {
                     GameSpectateAck message = (GameSpectateAck) object;
-                    games.put(message.gameId, new ClientGameData(message.gameId, message.state));
+                    games.put(message.gameId, new ClientGameData<>(message.gameId, (S) message.state));
                 } else if (object instanceof GameAction) {
                     GameAction message = (GameAction) object;
-                    ClientGameData game = games.get(message.gameId);
-                    GameService service = GamesClient.this.gameServices.get(game.state.getClass());
-                    service.applyAction(game.state, message.action, new SlaveRandom(message.randomHistory));
+                    ClientGameData<S, A> game = games.get(message.gameId);
+                    game.state = gameService.applyAction(game.state, (A) message.action, new SlaveRandom(message.randomHistory));
                 }
             }
         });
@@ -58,11 +54,8 @@ public class GamesClient {
         client.connect(timeout, host, port);
     }
 
-    public void startNewGame(Class<?> gameType) {
-        if (!gameServices.containsKey(gameType)) {
-            throw new AssertionError(gameType);
-        }
-        client.sendTCP(new GameStartRequest(gameType));
+    public void startNewGame() {
+        client.sendTCP(new GameStartRequest());
     }
 
     public void sendAction(UUID gameId, Object action) {
@@ -74,12 +67,12 @@ public class GamesClient {
     }
 
 
-    public Collection<ClientGameData> getGames() {
+    public Collection<ClientGameData<S, A>> getGames() {
         return games.values();
     }
 
-    public <S> GameService<S, ?> getService(S state) {
-        return (GameService<S, ?>) gameServices.get(state.getClass());
+    public GameService<S, A> getService() {
+        return gameService;
     }
 
     public void stop() {

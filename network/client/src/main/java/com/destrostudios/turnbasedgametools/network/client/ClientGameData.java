@@ -2,11 +2,11 @@ package com.destrostudios.turnbasedgametools.network.client;
 
 import java.util.UUID;
 
-public class ClientGameData {
+public class ClientGameData<S, A> {
     public final UUID id;
-    public Object state;
+    public S state;
 
-    public ClientGameData(UUID id, Object state) {
+    public ClientGameData(UUID id, S state) {
         this.id = id;
         this.state = state;
     }

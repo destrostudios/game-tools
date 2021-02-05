@@ -36,14 +36,9 @@ public class Connect4Service implements GameService<Connect4Impl, Long> {
     }
 
     @Override
-    public void applyAction(Connect4Impl state, Long action, NetworkRandom random) {
+    public Connect4Impl applyAction(Connect4Impl state, Long action, NetworkRandom random) {
         state.move(action);
-    }
-
-
-    @Override
-    public Class<Connect4Impl> getStateClass() {
-        return Connect4Impl.class;
+        return state;
     }
 
 }
