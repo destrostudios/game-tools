@@ -9,7 +9,7 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String... args) throws IOException, InterruptedException {
-        System.out.println("Unsafe access warnings are a know issue, see: https://github.com/EsotericSoftware/kryonet/issues/154");
+        System.out.println("Unsafe access warnings are a known issue, see: https://github.com/EsotericSoftware/kryonet/issues/154");
         GameService<Connect4Impl, Long> gameService = new Connect4Service();
         GamesServer<Connect4Impl, Long> server = new GamesServer<>(NetworkUtil.PORT, gameService);
         GamesClient<Connect4Impl, Long> client = new GamesClient<>("localhost", NetworkUtil.PORT, 10_000, gameService);
