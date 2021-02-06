@@ -10,7 +10,6 @@
     <version>0.1.0</version>
     <modules>
         <module>network</module>
-        <module>bot</module>
     </modules>
 
     <properties>
