@@ -15,7 +15,6 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -64,11 +63,8 @@ public class GamesServer<S, A> {
                         }
                     }
                 } else if (object instanceof GameStartRequest) {
-                    UUID id = UUID.randomUUID();
-                    S state = gameService.startNewGame();
-                    ServerGameData<S, A> game = new ServerGameData<>(id, state, new SecureRandom());
-                    games.put(id, game);
-                    spectate(connection, id);
+                    UUID gameId = startNewGame();
+                    spectate(connection, gameId);
                 }
                 for (Listener listener : listeners) {
                     listener.received(connection, object);
@@ -86,9 +82,10 @@ public class GamesServer<S, A> {
         server.bind(port);
     }
 
-    private UUID startGame(S state, Random random) {
+    public UUID startNewGame() {
         UUID id = UUID.randomUUID();
-        games.put(id, new ServerGameData<>(id, state, random));
+        S state = gameService.startNewGame();
+        games.put(id, new ServerGameData<>(id, state, new SecureRandom()));
         return id;
     }
 
