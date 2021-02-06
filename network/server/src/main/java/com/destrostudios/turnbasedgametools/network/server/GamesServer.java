@@ -50,9 +50,7 @@ public class GamesServer<S, A> {
             public void received(Connection connection, Object object) {
                 if (object instanceof GameSpectateRequest) {
                     GameSpectateRequest message = (GameSpectateRequest) object;
-                    ServerGameData<S, A> game = games.get(message.gameId);
-                    game.addSpectator(connection.getID());
-                    connection.sendTCP(new GameSpectateAck(game.id, game.state));
+                    spectate(connection, message.gameId);
                 } else if (object instanceof GameActionRequest) {
                     GameActionRequest message = (GameActionRequest) object;
                     ServerGameData<S, A> game = games.get(message.game);
@@ -70,8 +68,7 @@ public class GamesServer<S, A> {
                     S state = gameService.startNewGame();
                     ServerGameData<S, A> game = new ServerGameData<>(id, state, new SecureRandom());
                     games.put(id, game);
-                    game.addSpectator(connection.getID());
-                    connection.sendTCP(new GameSpectateAck(id, state));
+                    spectate(connection, id);
                 }
                 for (Listener listener : listeners) {
                     listener.received(connection, object);
@@ -93,6 +90,12 @@ public class GamesServer<S, A> {
         UUID id = UUID.randomUUID();
         games.put(id, new ServerGameData<>(id, state, random));
         return id;
+    }
+
+    public void spectate(Connection connection, UUID gameId) {
+        ServerGameData<S, A> game = games.get(gameId);
+        game.addSpectator(connection.getID());
+        connection.sendTCP(new GameSpectateAck(game.id, game.state));
     }
 
     public void removeSpectator(int connectionId) {
