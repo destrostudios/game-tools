@@ -108,6 +108,10 @@ public class GamesServer<S, A> {
         return gameService;
     }
 
+    public List<ServerGameData<S, A>> getGames() {
+        return new ArrayList<>(games.values());
+    }
+
     public void addListener(Listener listener) {
         listeners.add(listener);
     }
