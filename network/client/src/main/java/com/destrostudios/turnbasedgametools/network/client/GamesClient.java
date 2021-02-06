@@ -11,7 +11,9 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,6 +22,7 @@ public class GamesClient<S, A> {
     private final Client client;
     private final GameService<S, A> gameService;
     private final Map<UUID, ClientGameData<S, A>> games = new ConcurrentHashMap<>();
+    private final List<Listener> listeners = new ArrayList<>();
 
     public GamesClient(String host, int port, int timeout, GameService<S, A> service) throws IOException {
         gameService = service;
@@ -29,12 +32,16 @@ public class GamesClient<S, A> {
         client.addListener(new Listener() {
             @Override
             public void connected(Connection connection) {
-
+                for (Listener listener : listeners) {
+                    listener.connected(connection);
+                }
             }
 
             @Override
             public void disconnected(Connection connection) {
-
+                for (Listener listener : listeners) {
+                    listener.disconnected(connection);
+                }
             }
 
             @Override
@@ -46,6 +53,16 @@ public class GamesClient<S, A> {
                     GameAction message = (GameAction) object;
                     ClientGameData<S, A> game = games.get(message.gameId);
                     game.state = gameService.applyAction(game.state, (A) message.action, new SlaveRandom(message.randomHistory));
+                }
+                for (Listener listener : listeners) {
+                    listener.received(connection, object);
+                }
+            }
+
+            @Override
+            public void idle(Connection connection) {
+                for (Listener listener : listeners) {
+                    listener.idle(connection);
                 }
             }
         });
@@ -73,6 +90,14 @@ public class GamesClient<S, A> {
 
     public GameService<S, A> getService() {
         return gameService;
+    }
+
+    public void addListener(Listener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeListener(Listener listener) {
+        listeners.remove(listener);
     }
 
     public void stop() {

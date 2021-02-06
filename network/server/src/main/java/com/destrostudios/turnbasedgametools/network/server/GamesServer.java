@@ -12,6 +12,8 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
@@ -21,6 +23,7 @@ public class GamesServer<S, A> {
     private final Server server;
     private final GameService<S, A> gameService;
     private final Map<UUID, ServerGameData<S, A>> games = new ConcurrentHashMap<>();
+    private final List<Listener> listeners = new ArrayList<>();
 
     public GamesServer(int port, GameService<S, A> service) throws IOException {
         gameService = service;
@@ -30,11 +33,17 @@ public class GamesServer<S, A> {
         server.addListener(new Listener() {
             @Override
             public void connected(Connection connection) {
+                for (Listener listener : listeners) {
+                    listener.connected(connection);
+                }
             }
 
             @Override
             public void disconnected(Connection connection) {
                 removeSpectator(connection.getID());
+                for (Listener listener : listeners) {
+                    listener.disconnected(connection);
+                }
             }
 
             @Override
@@ -64,6 +73,16 @@ public class GamesServer<S, A> {
                     game.addSpectator(connection.getID());
                     connection.sendTCP(new GameSpectateAck(id, state));
                 }
+                for (Listener listener : listeners) {
+                    listener.received(connection, object);
+                }
+            }
+
+            @Override
+            public void idle(Connection connection) {
+                for (Listener listener : listeners) {
+                    listener.idle(connection);
+                }
             }
         });
         server.start();
@@ -84,6 +103,14 @@ public class GamesServer<S, A> {
 
     public GameService<S, A> getService() {
         return gameService;
+    }
+
+    public void addListener(Listener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeListener(Listener listener) {
+        listeners.remove(listener);
     }
 
     public void stop() {
