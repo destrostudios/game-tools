@@ -107,7 +107,7 @@ public class GamesServer<S, A> {
     public void join(Connection connection, UUID gameId, Set<Object> tags) {
         ServerGameData<S, A> game = games.get(gameId);
         game.setConnectionTags(connection.getID(), tags);
-        connection.sendTCP(new GameJoinAck(game.id, game.state, tags));
+        connection.sendTCP(new GameJoinAck(game.id, game.state, tags.toArray()));
     }
 
     public void applyAction(UUID gameId, A action) {

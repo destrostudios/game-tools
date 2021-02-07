@@ -17,6 +17,7 @@ public class NetworkUtil {
     public static void initialize(Kryo kryo) {
         kryo.register(UUID.class, new UuidSerializer());
         kryo.register(int[].class);
+        kryo.register(Object[].class);
 
         kryo.register(GameAction.class);
         kryo.register(GameActionRequest.class);
