@@ -12,7 +12,6 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -52,7 +51,7 @@ public class GamesClient<S, A> {
                 } else if (object instanceof GameAction) {
                     GameAction message = (GameAction) object;
                     ClientGameData<S, A> game = games.get(message.gameId);
-                    game.state = gameService.applyAction(game.state, (A) message.action, new SlaveRandom(message.randomHistory));
+                    game.enqueueAction((A) message.action, message.randomHistory);
                 }
                 for (Listener listener : listeners) {
                     listener.received(connection, object);
@@ -83,20 +82,27 @@ public class GamesClient<S, A> {
         client.sendTCP(new GameSpectateRequest(gameId));
     }
 
+    public boolean updateGame(UUID id) {
+        return getGame(id).update(gameService);
+    }
 
-    public Collection<ClientGameData<S, A>> getGames() {
-        return games.values();
+    public ClientGameData<S, A> getGame(UUID id) {
+        return games.get(id);
+    }
+
+    public List<ClientGameData<S, A>> getGames() {
+        return new ArrayList<>(games.values());
     }
 
     public GameService<S, A> getService() {
         return gameService;
     }
 
-    public void addListener(Listener listener) {
+    public void addConnectionListener(Listener listener) {
         listeners.add(listener);
     }
 
-    public void removeListener(Listener listener) {
+    public void removeConnectionListener(Listener listener) {
         listeners.remove(listener);
     }
 

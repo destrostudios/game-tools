@@ -22,10 +22,11 @@ public class Main {
         while (pointer < actions.length) {
             long action = actions[pointer++];
             for (ClientGameData<Connect4Impl, Long> game : client.getGames()) {
-                client.sendAction(game.id, action);
+                client.sendAction(game.getId(), action);
                 Thread.sleep(1_000);
+                client.updateGame(game.getId());
                 System.out.println();
-                System.out.println(game.state);
+                System.out.println(game.getState());
             }
         }
         client.stop();
