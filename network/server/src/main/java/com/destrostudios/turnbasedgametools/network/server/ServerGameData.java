@@ -1,7 +1,8 @@
 package com.destrostudios.turnbasedgametools.network.server;
 
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -29,10 +30,14 @@ public class ServerGameData<S, A> {
     }
 
     public void setConnectionTags(int connectionId, Set<Object> tags) {
-        connectionTags.put(connectionId, new HashSet<>(tags));
+        connectionTags.put(connectionId, Collections.unmodifiableSet(new LinkedHashSet<>(tags)));
     }
 
     public void removeConnection(int connectionId) {
         connectionTags.remove(connectionId);
+    }
+
+    public Map<Integer, Set<Object>> getConnectionTags() {
+        return Collections.unmodifiableMap(new HashMap<>(connectionTags));
     }
 }
