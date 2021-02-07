@@ -37,6 +37,17 @@ public class Connect4Service implements GameService<Connect4Impl, Long> {
 
     @Override
     public Connect4Impl applyAction(Connect4Impl state, Long action, NetworkRandom random) {
+        if (Long.bitCount(action) != 1) {
+
+            // destroy state to test whether backup works
+            state.own = ~0;
+            state.opp = ~0;
+
+            throw new IllegalArgumentException(action + " is not a valid move.");
+        }
+        if ((state.availableMoves() & action) == 0) {
+            throw new IllegalArgumentException(action + " is not an available move.");
+        }
         state.move(action);
         return state;
     }

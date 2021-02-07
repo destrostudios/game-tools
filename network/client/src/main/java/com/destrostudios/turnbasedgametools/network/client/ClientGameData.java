@@ -6,6 +6,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ClientGameData<S, A> {
+
+    private boolean desynced = false;
     private final UUID id;
     private final Queue<ActionReplay<A>> pendingActions = new ConcurrentLinkedQueue<>();
     private S state;
@@ -13,6 +15,7 @@ public class ClientGameData<S, A> {
     public ClientGameData(UUID id, S state) {
         this.id = id;
         this.state = state;
+        this.desynced = false;
     }
 
     public void enqueueAction(A action, int[] randomHistory) {
@@ -35,5 +38,13 @@ public class ClientGameData<S, A> {
 
     public UUID getId() {
         return id;
+    }
+
+    public boolean isDesynced() {
+        return desynced;
+    }
+
+    public void setDesynced() {
+        this.desynced = true;
     }
 }

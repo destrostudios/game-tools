@@ -7,6 +7,8 @@ import com.destrostudios.turnbasedgametools.network.shared.messages.GameActionRe
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameSpectateAck;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameSpectateRequest;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameStartRequest;
+import com.destrostudios.turnbasedgametools.network.shared.messages.Ping;
+import com.destrostudios.turnbasedgametools.network.shared.messages.Pong;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
@@ -16,8 +18,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GamesClient<S, A> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(GamesClient.class);
+
     private final Client client;
     private final GameService<S, A> gameService;
     private final Map<UUID, ClientGameData<S, A>> games = new ConcurrentHashMap<>();
@@ -47,11 +54,12 @@ public class GamesClient<S, A> {
             public void received(Connection connection, Object object) {
                 if (object instanceof GameSpectateAck) {
                     GameSpectateAck message = (GameSpectateAck) object;
-                    games.put(message.gameId, new ClientGameData<>(message.gameId, (S) message.state));
+                    onSpectateGame(message.gameId, (S) message.state);
                 } else if (object instanceof GameAction) {
                     GameAction message = (GameAction) object;
-                    ClientGameData<S, A> game = games.get(message.gameId);
-                    game.enqueueAction((A) message.action, message.randomHistory);
+                    onAction(message.gameId, (A) message.action, message.randomHistory);
+                } else if (object instanceof Ping) {
+                    connection.sendTCP(new Pong());
                 }
                 for (Listener listener : listeners) {
                     listener.received(connection, object);
@@ -70,6 +78,15 @@ public class GamesClient<S, A> {
         client.connect(timeout, host, port);
     }
 
+    private void onSpectateGame(UUID gameId, S gameState) {
+        games.put(gameId, new ClientGameData<>(gameId, gameState));
+    }
+
+    private void onAction(UUID gameId, A action, int[] randomHistory) {
+        ClientGameData<S, A> game = games.get(gameId);
+        game.enqueueAction(action, randomHistory);
+    }
+
     public void startNewGame() {
         client.sendTCP(new GameStartRequest());
     }
@@ -83,7 +100,18 @@ public class GamesClient<S, A> {
     }
 
     public boolean updateGame(UUID id) {
-        return getGame(id).update(gameService);
+        ClientGameData<S, A> game = getGame(id);
+        if (game.isDesynced()) {
+            return false;
+        }
+        try {
+            return game.update(gameService);
+        } catch (Throwable t) {
+            game.setDesynced();
+            LOG.error("Game {} is likely desynced. Attempting to rejoin...", game.getId(), t);
+            spectate(game.getId());
+            return false;
+        }
     }
 
     public ClientGameData<S, A> getGame(UUID id) {
@@ -104,6 +132,10 @@ public class GamesClient<S, A> {
 
     public void removeConnectionListener(Listener listener) {
         listeners.remove(listener);
+    }
+
+    public Client getKryoClient() {
+        return client;
     }
 
     public void stop() {

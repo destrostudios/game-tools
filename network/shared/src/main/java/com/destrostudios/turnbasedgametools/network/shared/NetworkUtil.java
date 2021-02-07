@@ -5,6 +5,8 @@ import com.destrostudios.turnbasedgametools.network.shared.messages.GameActionRe
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameSpectateAck;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameSpectateRequest;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameStartRequest;
+import com.destrostudios.turnbasedgametools.network.shared.messages.Ping;
+import com.destrostudios.turnbasedgametools.network.shared.messages.Pong;
 import com.esotericsoftware.kryo.Kryo;
 import java.util.UUID;
 
@@ -22,5 +24,7 @@ public class NetworkUtil {
         kryo.register(GameStartRequest.class);
         kryo.register(GameSpectateRequest.class);
 
+        kryo.register(Ping.class);
+        kryo.register(Pong.class);
     }
 }

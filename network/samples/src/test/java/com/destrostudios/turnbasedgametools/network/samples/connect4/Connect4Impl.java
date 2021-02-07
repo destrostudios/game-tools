@@ -12,9 +12,10 @@ public class Connect4Impl {
     public Connect4Impl(int width, int height) {
         this.width = width;
         this.height = height;
+        int bufferedHeight = height + 1;
+        row_0 = ((1L << width * bufferedHeight) - 1) / ((1L << bufferedHeight) - 1);
         col_0 = (1L << height) - 1;
-        board = (1L << (width * height)) - 1;
-        row_0 = board / col_0;
+        board = row_0 * col_0;
     }
 
     public boolean isWhiteActive() {

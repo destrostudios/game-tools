@@ -7,9 +7,16 @@ import com.destrostudios.turnbasedgametools.network.shared.messages.GameActionRe
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameSpectateAck;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameSpectateRequest;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameStartRequest;
+import com.destrostudios.turnbasedgametools.network.shared.messages.Ping;
+import com.destrostudios.turnbasedgametools.network.shared.messages.Pong;
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -17,8 +24,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GamesServer<S, A> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(GamesServer.class);
+
     private final Server server;
     private final GameService<S, A> gameService;
     private final Map<UUID, ServerGameData<S, A>> games = new ConcurrentHashMap<>();
@@ -47,27 +59,10 @@ public class GamesServer<S, A> {
 
             @Override
             public void received(Connection connection, Object object) {
-                if (object instanceof GameSpectateRequest) {
-                    GameSpectateRequest message = (GameSpectateRequest) object;
-                    spectate(connection, message.gameId);
-                } else if (object instanceof GameActionRequest) {
-                    GameActionRequest message = (GameActionRequest) object;
-                    ServerGameData<S, A> game = games.get(message.game);
-                    MasterRandom random = new MasterRandom(game.random);
-                    game.state = gameService.applyAction(game.state, (A) message.action, random);
-                    int[] randomHistory = random.getHistory();
-
-                    for (Connection other : server.getConnections()) {
-                        if (game.hasSpectator(other.getID())) {
-                            other.sendTCP(new GameAction(game.id, message.action, randomHistory));
-                        }
-                    }
-                } else if (object instanceof GameStartRequest) {
-                    UUID gameId = startNewGame();
-                    spectate(connection, gameId);
-                }
-                for (Listener listener : listeners) {
-                    listener.received(connection, object);
+                try {
+                    handleReceivedMessage(connection, object);
+                } catch (Throwable t) {
+                    LOG.error("Exception when handling received message {} from connection {}.", object, connection.getID(), t);
                 }
             }
 
@@ -82,6 +77,24 @@ public class GamesServer<S, A> {
         server.bind(port);
     }
 
+    private void handleReceivedMessage(Connection connection, Object object) {
+        if (object instanceof GameSpectateRequest) {
+            GameSpectateRequest message = (GameSpectateRequest) object;
+            spectate(connection, message.gameId);
+        } else if (object instanceof GameActionRequest) {
+            GameActionRequest message = (GameActionRequest) object;
+            applyAction(message.game, (A) message.action);
+        } else if (object instanceof GameStartRequest) {
+            UUID gameId = startNewGame();
+            spectate(connection, gameId);
+        } else if (object instanceof Ping) {
+            connection.sendTCP(new Pong());
+        }
+        for (Listener listener : listeners) {
+            listener.received(connection, object);
+        }
+    }
+
     public UUID startNewGame() {
         UUID id = UUID.randomUUID();
         S state = gameService.startNewGame();
@@ -93,6 +106,35 @@ public class GamesServer<S, A> {
         ServerGameData<S, A> game = games.get(gameId);
         game.addSpectator(connection.getID());
         connection.sendTCP(new GameSpectateAck(game.id, game.state));
+    }
+
+    public void applyAction(UUID gameId, A action) {
+        ServerGameData<S, A> game = games.get(gameId);
+        MasterRandom random = new MasterRandom(game.random);
+
+        ByteArrayOutputStream backupOutputStream = new ByteArrayOutputStream();
+        Kryo kryo = new Kryo();
+        gameService.initialize(kryo);
+        try (Output output = new Output(backupOutputStream)) {
+            kryo.writeObject(output, game.state);
+            output.flush();
+        }
+        try {
+            game.state = gameService.applyAction(game.state, action, random);
+        } catch (Throwable t) {
+            LOG.warn("Game {} was rolled back due to an exception when trying to apply {}.", gameId, action);
+            try (Input input = new Input(new ByteArrayInputStream(backupOutputStream.toByteArray()))) {
+                game.state = kryo.readObject(input, (Class<S>) game.state.getClass());
+            }
+            throw t;
+        }
+        int[] randomHistory = random.getHistory();
+
+        for (Connection other : server.getConnections()) {
+            if (game.hasSpectator(other.getID())) {
+                other.sendTCP(new GameAction(game.id, action, randomHistory));
+            }
+        }
     }
 
     public void removeSpectator(int connectionId) {
@@ -109,12 +151,16 @@ public class GamesServer<S, A> {
         return new ArrayList<>(games.values());
     }
 
-    public void addListener(Listener listener) {
+    public void addConnectionListener(Listener listener) {
         listeners.add(listener);
     }
 
-    public void removeListener(Listener listener) {
+    public void removeConnectionListener(Listener listener) {
         listeners.remove(listener);
+    }
+
+    public Server getKryoServer() {
+        return server;
     }
 
     public void stop() {
