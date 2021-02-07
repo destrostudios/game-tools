@@ -4,8 +4,8 @@ import com.destrostudios.turnbasedgametools.network.shared.GameService;
 import com.destrostudios.turnbasedgametools.network.shared.NetworkUtil;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameAction;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameActionRequest;
-import com.destrostudios.turnbasedgametools.network.shared.messages.GameSpectateAck;
-import com.destrostudios.turnbasedgametools.network.shared.messages.GameSpectateRequest;
+import com.destrostudios.turnbasedgametools.network.shared.messages.GameJoinAck;
+import com.destrostudios.turnbasedgametools.network.shared.messages.GameJoinRequest;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameStartRequest;
 import com.destrostudios.turnbasedgametools.network.shared.messages.Ping;
 import com.destrostudios.turnbasedgametools.network.shared.messages.Pong;
@@ -52,8 +52,8 @@ public class GamesClient<S, A> {
 
             @Override
             public void received(Connection connection, Object object) {
-                if (object instanceof GameSpectateAck) {
-                    GameSpectateAck message = (GameSpectateAck) object;
+                if (object instanceof GameJoinAck) {
+                    GameJoinAck message = (GameJoinAck) object;
                     onSpectateGame(message.gameId, (S) message.state);
                 } else if (object instanceof GameAction) {
                     GameAction message = (GameAction) object;
@@ -95,8 +95,8 @@ public class GamesClient<S, A> {
         client.sendTCP(new GameActionRequest(gameId, action));
     }
 
-    public void spectate(UUID gameId) {
-        client.sendTCP(new GameSpectateRequest(gameId));
+    public void join(UUID gameId) {
+        client.sendTCP(new GameJoinRequest(gameId));
     }
 
     public boolean updateGame(UUID id) {
@@ -109,7 +109,7 @@ public class GamesClient<S, A> {
         } catch (Throwable t) {
             game.setDesynced();
             LOG.error("Game {} is likely desynced. Attempting to rejoin...", game.getId(), t);
-            spectate(game.getId());
+            join(game.getId());
             return false;
         }
     }

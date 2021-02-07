@@ -2,14 +2,14 @@ package com.destrostudios.turnbasedgametools.network.shared.messages;
 
 import java.util.UUID;
 
-public class GameSpectateRequest {
+public class GameJoinRequest {
 
     public UUID gameId;
 
-    GameSpectateRequest() {
+    GameJoinRequest() {
     }
 
-    public GameSpectateRequest(UUID gameId) {
+    public GameJoinRequest(UUID gameId) {
         this.gameId = gameId;
     }
 }

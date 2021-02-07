@@ -4,8 +4,8 @@ import com.destrostudios.turnbasedgametools.network.shared.GameService;
 import com.destrostudios.turnbasedgametools.network.shared.NetworkUtil;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameAction;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameActionRequest;
-import com.destrostudios.turnbasedgametools.network.shared.messages.GameSpectateAck;
-import com.destrostudios.turnbasedgametools.network.shared.messages.GameSpectateRequest;
+import com.destrostudios.turnbasedgametools.network.shared.messages.GameJoinAck;
+import com.destrostudios.turnbasedgametools.network.shared.messages.GameJoinRequest;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameStartRequest;
 import com.destrostudios.turnbasedgametools.network.shared.messages.Ping;
 import com.destrostudios.turnbasedgametools.network.shared.messages.Pong;
@@ -20,8 +20,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
@@ -78,15 +80,15 @@ public class GamesServer<S, A> {
     }
 
     private void handleReceivedMessage(Connection connection, Object object) {
-        if (object instanceof GameSpectateRequest) {
-            GameSpectateRequest message = (GameSpectateRequest) object;
-            spectate(connection, message.gameId);
+        if (object instanceof GameJoinRequest) {
+            GameJoinRequest message = (GameJoinRequest) object;
+            join(connection, message.gameId, Collections.emptySet());
         } else if (object instanceof GameActionRequest) {
             GameActionRequest message = (GameActionRequest) object;
             applyAction(message.game, (A) message.action);
         } else if (object instanceof GameStartRequest) {
             UUID gameId = startNewGame();
-            spectate(connection, gameId);
+            join(connection, gameId, Collections.emptySet());
         } else if (object instanceof Ping) {
             connection.sendTCP(new Pong());
         }
@@ -102,10 +104,10 @@ public class GamesServer<S, A> {
         return id;
     }
 
-    public void spectate(Connection connection, UUID gameId) {
+    public void join(Connection connection, UUID gameId, Set<Object> tags) {
         ServerGameData<S, A> game = games.get(gameId);
-        game.addSpectator(connection.getID());
-        connection.sendTCP(new GameSpectateAck(game.id, game.state));
+        game.setConnectionTags(connection.getID(), tags);
+        connection.sendTCP(new GameJoinAck(game.id, game.state, tags));
     }
 
     public void applyAction(UUID gameId, A action) {
@@ -131,7 +133,7 @@ public class GamesServer<S, A> {
         int[] randomHistory = random.getHistory();
 
         for (Connection other : server.getConnections()) {
-            if (game.hasSpectator(other.getID())) {
+            if (game.hasConnection(other.getID())) {
                 other.sendTCP(new GameAction(game.id, action, randomHistory));
             }
         }
@@ -139,12 +141,16 @@ public class GamesServer<S, A> {
 
     public void removeSpectator(int connectionId) {
         for (ServerGameData<S, A> game : games.values()) {
-            game.removeSpectator(connectionId);
+            game.removeConnection(connectionId);
         }
     }
 
     public GameService<S, A> getService() {
         return gameService;
+    }
+
+    public ServerGameData<S, A> getGame(UUID gameId) {
+        return games.get(gameId);
     }
 
     public List<ServerGameData<S, A>> getGames() {

@@ -1,17 +1,20 @@
 package com.destrostudios.turnbasedgametools.network.shared.messages;
 
+import java.util.Set;
 import java.util.UUID;
 
-public class GameSpectateAck {
+public class GameJoinAck {
 
     public UUID gameId;
     public Object state;
+    public Set<Object> tags;
 
-    GameSpectateAck() {
+    GameJoinAck() {
     }
 
-    public GameSpectateAck(UUID gameId, Object state) {
+    public GameJoinAck(UUID gameId, Object state, Set<Object> tags) {
         this.gameId = gameId;
         this.state = state;
+        this.tags = tags;
     }
 }

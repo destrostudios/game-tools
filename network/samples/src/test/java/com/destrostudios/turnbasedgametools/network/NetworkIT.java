@@ -8,7 +8,7 @@ import com.destrostudios.turnbasedgametools.network.server.GamesServer;
 import com.destrostudios.turnbasedgametools.network.shared.GameService;
 import com.destrostudios.turnbasedgametools.network.shared.NetworkUtil;
 import com.destrostudios.turnbasedgametools.network.shared.messages.GameAction;
-import com.destrostudios.turnbasedgametools.network.shared.messages.GameSpectateAck;
+import com.destrostudios.turnbasedgametools.network.shared.messages.GameJoinAck;
 import com.destrostudios.turnbasedgametools.network.shared.messages.Ping;
 import com.destrostudios.turnbasedgametools.network.shared.messages.Pong;
 import com.esotericsoftware.kryonet.Connection;
@@ -57,7 +57,7 @@ public class NetworkIT {
         long[] actions = {1L, 2L, 128L};
 
         client.startNewGame();
-        while (!(block.take() instanceof GameSpectateAck)) {
+        while (!(block.take() instanceof GameJoinAck)) {
             // block until we received the game state
         }
         ClientGameData<Connect4Impl, Long> game = client.getGames().get(0);
@@ -88,7 +88,7 @@ public class NetworkIT {
         });
 
         client.startNewGame();
-        while (!(block.take() instanceof GameSpectateAck)) {
+        while (!(block.take() instanceof GameJoinAck)) {
             // block until we received the game state
         }
         ClientGameData<Connect4Impl, Long> game = client.getGames().get(0);
@@ -122,7 +122,7 @@ public class NetworkIT {
         });
 
         client.startNewGame();
-        while (!(block.take() instanceof GameSpectateAck)) {
+        while (!(block.take() instanceof GameJoinAck)) {
             // block until we received the game state
         }
         ClientGameData<Connect4Impl, Long> game = client.getGames().get(0);
@@ -134,7 +134,7 @@ public class NetworkIT {
         boolean updated = client.updateGame(game.getId());
         assertFalse(updated);
         assertTrue(game.isDesynced());
-        while (!(block.take() instanceof GameSpectateAck)) {
+        while (!(block.take() instanceof GameJoinAck)) {
             // block until we received the game state
         }
         ClientGameData<Connect4Impl, Long> resyncedGame = client.getGame(game.getId());
