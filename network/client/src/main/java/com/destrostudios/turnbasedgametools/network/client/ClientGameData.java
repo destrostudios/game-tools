@@ -1,10 +1,7 @@
 package com.destrostudios.turnbasedgametools.network.client;
 
 import com.destrostudios.turnbasedgametools.network.shared.GameService;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Queue;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -13,12 +10,10 @@ public class ClientGameData<S, A> {
     private boolean desynced = false;
     private final UUID id;
     private final Queue<ActionReplay<A>> pendingActions = new ConcurrentLinkedQueue<>();
-    private final Set<Object> tags;
     private S state;
 
-    public ClientGameData(UUID id, Set<Object> tags, S state) {
+    public ClientGameData(UUID id, S state) {
         this.id = id;
-        this.tags = new LinkedHashSet<>(tags);
         this.state = state;
     }
 
@@ -52,7 +47,4 @@ public class ClientGameData<S, A> {
         this.desynced = true;
     }
 
-    public Set<Object> getTags() {
-        return Collections.unmodifiableSet(tags);
-    }
 }

@@ -6,14 +6,12 @@ public class GameJoinAck {
 
     public UUID gameId;
     public Object state;
-    public Object[] tags;
 
     GameJoinAck() {
     }
 
-    public GameJoinAck(UUID gameId, Object state, Object[] tags) {
+    public GameJoinAck(UUID gameId, Object state) {
         this.gameId = gameId;
         this.state = state;
-        this.tags = tags;
     }
 }

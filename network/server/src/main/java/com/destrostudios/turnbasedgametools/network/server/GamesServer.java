@@ -20,10 +20,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
@@ -82,13 +80,13 @@ public class GamesServer<S, A> {
     private void handleReceivedMessage(Connection connection, Object object) {
         if (object instanceof GameJoinRequest) {
             GameJoinRequest message = (GameJoinRequest) object;
-            join(connection, message.gameId, Collections.emptySet());
+            join(connection, message.gameId);
         } else if (object instanceof GameActionRequest) {
             GameActionRequest message = (GameActionRequest) object;
             applyAction(message.game, (A) message.action);
         } else if (object instanceof GameStartRequest) {
             UUID gameId = startNewGame();
-            join(connection, gameId, Collections.emptySet());
+            join(connection, gameId);
         } else if (object instanceof Ping) {
             connection.sendTCP(new Pong());
         }
@@ -104,10 +102,10 @@ public class GamesServer<S, A> {
         return id;
     }
 
-    public void join(Connection connection, UUID gameId, Set<Object> tags) {
+    public void join(Connection connection, UUID gameId) {
         ServerGameData<S, A> game = games.get(gameId);
-        game.setConnectionTags(connection.getID(), tags);
-        connection.sendTCP(new GameJoinAck(game.id, game.state, tags.toArray()));
+        game.addConnection(connection.getID());
+        connection.sendTCP(new GameJoinAck(game.id, game.state));
     }
 
     public void applyAction(UUID gameId, A action) {

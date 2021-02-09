@@ -14,13 +14,10 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +54,7 @@ public class GamesClient<S, A> {
             public void received(Connection connection, Object object) {
                 if (object instanceof GameJoinAck) {
                     GameJoinAck message = (GameJoinAck) object;
-                    onSpectateGame(message.gameId, (S) message.state, Arrays.stream(message.tags).collect(Collectors.toUnmodifiableSet()));
+                    onJoinGame(message.gameId, (S) message.state);
                 } else if (object instanceof GameAction) {
                     GameAction message = (GameAction) object;
                     onAction(message.gameId, (A) message.action, message.randomHistory);
@@ -81,8 +78,8 @@ public class GamesClient<S, A> {
         client.connect(timeout, host, port);
     }
 
-    private void onSpectateGame(UUID gameId, S gameState, Set<Object> tags) {
-        games.put(gameId, new ClientGameData<>(gameId, tags, gameState));
+    private void onJoinGame(UUID gameId, S gameState) {
+        games.put(gameId, new ClientGameData<>(gameId, gameState));
     }
 
     private void onAction(UUID gameId, A action, int[] randomHistory) {

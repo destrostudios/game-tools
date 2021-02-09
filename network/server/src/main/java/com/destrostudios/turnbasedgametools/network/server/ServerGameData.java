@@ -1,17 +1,13 @@
 package com.destrostudios.turnbasedgametools.network.server;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 public class ServerGameData<S, A> {
     public final UUID id;
-    private final Map<Integer, Set<Object>> connectionTags = new ConcurrentHashMap<>();
+    private final Set<Integer> connections = new CopyOnWriteArraySet<>();
     public S state;
     public final Random random;
 
@@ -22,22 +18,18 @@ public class ServerGameData<S, A> {
     }
 
     public boolean hasConnection(int connectionId) {
-        return connectionTags.containsKey(connectionId);
+        return connections.contains(connectionId);
     }
 
-    public void setUntaggedConnection(int connectionId) {
-        connectionTags.put(connectionId, Collections.emptySet());
-    }
-
-    public void setConnectionTags(int connectionId, Set<Object> tags) {
-        connectionTags.put(connectionId, Collections.unmodifiableSet(new LinkedHashSet<>(tags)));
+    public void addConnection(int connectionId) {
+        connections.add(connectionId);
     }
 
     public void removeConnection(int connectionId) {
-        connectionTags.remove(connectionId);
+        connections.remove(connectionId);
     }
 
-    public Map<Integer, Set<Object>> getConnectionTags() {
-        return Collections.unmodifiableMap(new HashMap<>(connectionTags));
+    public Set<Integer> getConnections() {
+        return Set.copyOf(connections);
     }
 }
