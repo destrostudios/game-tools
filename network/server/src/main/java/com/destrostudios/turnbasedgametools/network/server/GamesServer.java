@@ -38,7 +38,7 @@ public class GamesServer<S, A> {
 
     public GamesServer(int port, GameService<S, A> service) throws IOException {
         gameService = service;
-        server = new Server();
+        server = new Server(10_000_000, 10_000_000);
         NetworkUtil.initialize(server.getKryo());
         gameService.initialize(server.getKryo());
         server.addListener(new Listener() {

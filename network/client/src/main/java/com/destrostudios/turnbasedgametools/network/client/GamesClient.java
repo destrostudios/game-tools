@@ -32,7 +32,7 @@ public class GamesClient<S, A> {
 
     public GamesClient(String host, int port, int timeout, GameService<S, A> service) throws IOException {
         gameService = service;
-        client = new Client();
+        client = new Client(10_000_000, 10_000_000);
         NetworkUtil.initialize(client.getKryo());
         gameService.initialize(client.getKryo());
         client.addListener(new Listener() {
