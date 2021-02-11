@@ -21,7 +21,7 @@ public class ClientGameData<S, A> {
         pendingActions.offer(new ActionReplay<>(action, randomHistory));
     }
 
-    public boolean applyNextActionIfAvailable(GameService<S, A> service) {
+    public boolean applyNextAction(GameService<S, A> service) {
         ActionReplay<A> actionReplay;
         if ((actionReplay = pendingActions.poll()) != null) {
             state = service.applyAction(state, actionReplay.action, new SlaveRandom(actionReplay.randomHistory));

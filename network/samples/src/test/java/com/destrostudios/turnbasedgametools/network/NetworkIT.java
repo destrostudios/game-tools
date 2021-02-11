@@ -67,7 +67,7 @@ public class NetworkIT {
             while (!(block.take() instanceof GameAction)) {
                 // block until we received the action
             }
-            client.updateGame(game.getId());
+            client.applyAllActions(game.getId());
             System.out.println();
             System.out.println(game.getState());
         }
@@ -96,7 +96,7 @@ public class NetworkIT {
         while (!(block.take() instanceof GameAction)) {
             // block until we received the action
         }
-        client.updateGame(game.getId());
+        client.applyAllActions(game.getId());
         client.sendAction(game.getId(), ~0L);
         client.getKryoClient().sendTCP(new Ping());
 
@@ -131,7 +131,7 @@ public class NetworkIT {
         while (!(block.take() instanceof GameAction)) {
             // block until we received the action
         }
-        boolean updated = client.updateGame(game.getId());
+        boolean updated = client.applyAllActions(game.getId());
         assertFalse(updated);
         assertTrue(game.isDesynced());
         while (!(block.take() instanceof GameJoinAck)) {

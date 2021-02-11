@@ -99,14 +99,29 @@ public class GamesClient<S, A> {
         client.sendTCP(new GameJoinRequest(gameId));
     }
 
-    public boolean updateGame(UUID id) {
+    public boolean applyNextAction(UUID id) {
+        ClientGameData<S, A> game = getGame(id);
+        if (game.isDesynced()) {
+            return false;
+        }
+        try {
+            return game.applyNextAction(gameService);
+        } catch (Throwable t) {
+            game.setDesynced();
+            LOG.error("Game {} is likely desynced. Attempting to rejoin...", game.getId(), t);
+            join(game.getId());
+            return false;
+        }
+    }
+
+    public boolean applyAllActions(UUID id) {
         ClientGameData<S, A> game = getGame(id);
         if (game.isDesynced()) {
             return false;
         }
         try {
             boolean updated = false;
-            while (game.applyNextActionIfAvailable(gameService)) {
+            while (game.applyNextAction(gameService)) {
                 updated = true;
             }
             return updated;
