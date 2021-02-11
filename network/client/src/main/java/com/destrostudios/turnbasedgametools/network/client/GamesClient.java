@@ -105,7 +105,11 @@ public class GamesClient<S, A> {
             return false;
         }
         try {
-            return game.update(gameService);
+            boolean updated = false;
+            while (game.applyNextActionIfAvailable(gameService)) {
+                updated = true;
+            }
+            return updated;
         } catch (Throwable t) {
             game.setDesynced();
             LOG.error("Game {} is likely desynced. Attempting to rejoin...", game.getId(), t);

@@ -21,14 +21,13 @@ public class ClientGameData<S, A> {
         pendingActions.offer(new ActionReplay<>(action, randomHistory));
     }
 
-    public boolean update(GameService<S, A> service) {
-        boolean updated = false;
+    public boolean applyNextActionIfAvailable(GameService<S, A> service) {
         ActionReplay<A> actionReplay;
-        while ((actionReplay = pendingActions.poll()) != null) {
+        if ((actionReplay = pendingActions.poll()) != null) {
             state = service.applyAction(state, actionReplay.action, new SlaveRandom(actionReplay.randomHistory));
-            updated = true;
+            return true;
         }
-        return updated;
+        return false;
     }
 
     public S getState() {
