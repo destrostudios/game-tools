@@ -1,6 +1,6 @@
-package com.destrostudios.turnbasedgametools.network.server;
+package com.destrostudios.turnbasedgametools.network.server.modules.game;
 
-import com.destrostudios.turnbasedgametools.network.shared.NetworkRandom;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.NetworkRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;

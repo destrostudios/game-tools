@@ -1,4 +1,4 @@
-package com.destrostudios.turnbasedgametools.network.server;
+package com.destrostudios.turnbasedgametools.network.server.modules.game;
 
 import java.util.Random;
 import java.util.Set;

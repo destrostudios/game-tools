@@ -7,7 +7,7 @@
     <groupId>com.destrostudios.turn-based-game-tools</groupId>
     <artifactId>turn-based-game-tools</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <modules>
         <module>network</module>
     </modules>

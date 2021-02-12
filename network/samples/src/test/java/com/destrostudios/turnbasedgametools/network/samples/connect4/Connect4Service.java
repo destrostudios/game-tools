@@ -1,7 +1,7 @@
 package com.destrostudios.turnbasedgametools.network.samples.connect4;
 
-import com.destrostudios.turnbasedgametools.network.shared.GameService;
-import com.destrostudios.turnbasedgametools.network.shared.NetworkRandom;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.GameService;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.NetworkRandom;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;

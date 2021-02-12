@@ -1,7 +1,7 @@
-package com.destrostudios.turnbasedgametools.network.client;
+package com.destrostudios.turnbasedgametools.network.client.modules.game;
 
 
-import com.destrostudios.turnbasedgametools.network.shared.NetworkRandom;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.NetworkRandom;
 
 public class SlaveRandom implements NetworkRandom {
     private final int[] history;

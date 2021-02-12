@@ -1,4 +1,4 @@
-package com.destrostudios.turnbasedgametools.network.shared;
+package com.destrostudios.turnbasedgametools.network.shared.modules.game;
 
 public interface NetworkRandom {
     int nextInt(int maxExclusive);

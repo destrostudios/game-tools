@@ -1,4 +1,4 @@
-package com.destrostudios.turnbasedgametools.network.client;
+package com.destrostudios.turnbasedgametools.network.client.modules.game;
 
 class ActionReplay<A> {
     public final A action;

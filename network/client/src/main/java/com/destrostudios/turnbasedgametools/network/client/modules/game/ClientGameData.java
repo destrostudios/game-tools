@@ -1,6 +1,6 @@
-package com.destrostudios.turnbasedgametools.network.client;
+package com.destrostudios.turnbasedgametools.network.client.modules.game;
 
-import com.destrostudios.turnbasedgametools.network.shared.GameService;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.GameService;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;

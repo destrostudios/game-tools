@@ -1,4 +1,4 @@
-package com.destrostudios.turnbasedgametools.network.shared.messages;
+package com.destrostudios.turnbasedgametools.network.shared.modules.game.messages;
 
 import java.util.UUID;
 
