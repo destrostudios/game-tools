@@ -11,6 +11,7 @@ import com.destrostudios.turnbasedgametools.network.server.ToolsServer;
 import com.destrostudios.turnbasedgametools.network.server.modules.jwt.JwtServerModule;
 import com.destrostudios.turnbasedgametools.network.shared.NetworkUtil;
 import com.destrostudios.turnbasedgametools.network.shared.modules.jwt.messages.UserLogin;
+import com.destrostudios.turnbasedgametools.network.shared.modules.jwt.messages.UserLogout;
 import com.destrostudios.turnbasedgametools.network.shared.modules.ping.PingModule;
 import com.destrostudios.turnbasedgametools.network.shared.modules.ping.messages.Ping;
 import com.destrostudios.turnbasedgametools.network.shared.modules.ping.messages.Pong;
@@ -40,7 +41,7 @@ public class OnlinePlayersIT {
         server = new ToolsServer(kryoServer, new JwtServerModule(jwtService, kryoServer::getConnections), new PingModule());
         server.start(NetworkUtil.PORT);
 
-        clients = new ToolsClient[2];
+        clients = new ToolsClient[3];
         for (int i = 0; i < clients.length; i++) {
             Client kryoClient = new Client();
             clients[i] = new ToolsClient(kryoClient, new JwtClientModule(jwtService, kryoClient), new BlockingMessageModule(), new PingModule());
@@ -90,11 +91,10 @@ public class OnlinePlayersIT {
         jwtModule0.login(createJwt(user0));
         jwtModule1.login(createJwt(user1));
 
-        clients[0].getKryoClient().sendTCP(new Ping());
-        clients[1].getKryoClient().sendTCP(new Ping());
-
-        blockModule0.takeUntil(Pong.class);
-        blockModule1.takeUntil(Pong.class);
+        blockModule0.takeUntil(UserLogin.class);
+        blockModule0.takeUntil(UserLogin.class);
+        blockModule1.takeUntil(UserLogin.class);
+        blockModule1.takeUntil(UserLogin.class);
 
         List<JwtAuthenticationUser> expected = Arrays.asList(user0, user1);
 
@@ -102,8 +102,55 @@ public class OnlinePlayersIT {
         assertEquals(expected, jwtModule1.onlineUsers());
 
         jwtModule0.logout();
+        blockModule1.takeUntil(UserLogout.class);
 
         expected = Collections.singletonList(user1);
+        assertEquals(expected, jwtModule1.onlineUsers());
+    }
+
+    @Test(timeout = 1000)
+    public void multiConnect() throws InterruptedException {
+        BlockingMessageModule blockModule0 = clients[0].getModule(BlockingMessageModule.class);
+        JwtClientModule jwtModule0 = clients[0].getModule(JwtClientModule.class);
+        JwtAuthenticationUser user0 = new JwtAuthenticationUser();
+        user0.id = 178;
+        user0.login = "TestName";
+
+        BlockingMessageModule blockModule1 = clients[1].getModule(BlockingMessageModule.class);
+        JwtClientModule jwtModule1 = clients[1].getModule(JwtClientModule.class);
+        JwtAuthenticationUser user1 = new JwtAuthenticationUser();
+        user1.id = 5425;
+        user1.login = "Frank";
+
+        BlockingMessageModule blockModule2 = clients[2].getModule(BlockingMessageModule.class);
+        JwtClientModule jwtModule2 = clients[2].getModule(JwtClientModule.class);
+        JwtAuthenticationUser user2 = user0; // multiple connections with same account
+
+        jwtModule0.login(createJwt(user0));
+        jwtModule1.login(createJwt(user1));
+        jwtModule2.login(createJwt(user2));
+
+        blockModule0.takeUntil(UserLogin.class);
+        blockModule0.takeUntil(UserLogin.class);
+        blockModule1.takeUntil(UserLogin.class);
+        blockModule1.takeUntil(UserLogin.class);
+        blockModule2.takeUntil(UserLogin.class);
+        blockModule2.takeUntil(UserLogin.class);
+
+        List<JwtAuthenticationUser> expected = Arrays.asList(user0, user1);
+
+        assertEquals(expected, jwtModule0.onlineUsers());
+        assertEquals(expected, jwtModule1.onlineUsers());
+
+        jwtModule2.logout();
+        clients[2].getKryoClient().sendTCP(new Ping());
+        blockModule2.takeUntil(Pong.class);
+        clients[0].getKryoClient().sendTCP(new Ping());
+        blockModule0.takeUntil(Pong.class);
+        clients[1].getKryoClient().sendTCP(new Ping());
+        blockModule1.takeUntil(Pong.class);
+
+        assertEquals(expected, jwtModule0.onlineUsers());
         assertEquals(expected, jwtModule1.onlineUsers());
     }
 
