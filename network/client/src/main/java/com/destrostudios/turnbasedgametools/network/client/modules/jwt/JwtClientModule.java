@@ -55,7 +55,6 @@ public class JwtClientModule extends JwtModule {
 
     public void logout() {
         connection.sendTCP(new Logout());
-        users.clear();
     }
 
     public List<JwtAuthenticationUser> onlineUsers() {

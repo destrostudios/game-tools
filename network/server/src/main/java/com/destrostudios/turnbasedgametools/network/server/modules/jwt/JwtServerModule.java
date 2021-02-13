@@ -40,16 +40,16 @@ public class JwtServerModule extends JwtModule {
 
             login(connection, authentication.user);
         } else if (object instanceof Logout) {
-            logout(connection.getID());
+            logout(connection);
         }
     }
 
     @Override
     public void disconnected(Connection connection) {
-        logout(connection.getID());
+        logout(connection);
     }
 
-    private void login(Connection connection, JwtAuthenticationUser user) {
+    public void login(Connection connection, JwtAuthenticationUser user) {
         Set<JwtAuthenticationUser> previousUsers = new TreeSet<>(Comparator.comparingLong(x -> x.id));
         previousUsers.addAll(connectionToUser.values());
 
@@ -67,9 +67,13 @@ public class JwtServerModule extends JwtModule {
         LOG.info("Connection {} logged in as: {} {}.", connection.getID(), user.id, user.login);
     }
 
-    private void logout(int connectionId) {
-        JwtAuthenticationUser user = connectionToUser.remove(connectionId);
-        LOG.info("Connection {} logged out.", connectionId);
+    public void logout(Connection connection) {
+        for (JwtAuthenticationUser other : connectionToUser.values()) {
+            connection.sendTCP(new UserLogout(other));
+        }
+
+        JwtAuthenticationUser user = connectionToUser.remove(connection.getID());
+        LOG.info("Connection {} logged out.", connection.getID());
 
         if (user != null && !connectionToUser.containsValue(user)) {
             for (Connection other : connectionsSupply.get()) {

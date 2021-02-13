@@ -7,11 +7,17 @@ import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameJoinAck;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameJoinRequest;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameStartRequest;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.ListGame;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.SubscribeGamesList;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.UnlistGame;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.UnsubscribeGamesList;
 import com.esotericsoftware.kryonet.Connection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +27,7 @@ public class GameClientModule<S, A> extends GameModule<S, A> {
 
     private final Connection connection;
     private final Map<UUID, ClientGameData<S, A>> games = new ConcurrentHashMap<>();
+    private final Set<UUID> gamesList = new CopyOnWriteArraySet<>();
 
     public GameClientModule(GameService<S, A> gameService, Connection connection) {
         super(gameService);
@@ -35,7 +42,19 @@ public class GameClientModule<S, A> extends GameModule<S, A> {
         } else if (object instanceof GameAction) {
             GameAction message = (GameAction) object;
             onAction(message.gameId, (A) message.action, message.randomHistory);
+        } else if (object instanceof ListGame) {
+            ListGame message = (ListGame) object;
+            gamesList.add(message.gameId);
+        } else if (object instanceof UnlistGame) {
+            UnlistGame message = (UnlistGame) object;
+            gamesList.remove(message.gameId);
         }
+    }
+
+    @Override
+    public void disconnected(Connection connection) {
+        games.clear();
+        gamesList.clear();
     }
 
     private void onJoinGame(UUID gameId, S gameState) {
@@ -60,7 +79,7 @@ public class GameClientModule<S, A> extends GameModule<S, A> {
     }
 
     public boolean applyNextAction(UUID id) {
-        ClientGameData<S, A> game = getGame(id);
+        ClientGameData<S, A> game = getJoinedGame(id);
         if (game.isDesynced()) {
             return false;
         }
@@ -75,7 +94,7 @@ public class GameClientModule<S, A> extends GameModule<S, A> {
     }
 
     public boolean applyAllActions(UUID id) {
-        ClientGameData<S, A> game = getGame(id);
+        ClientGameData<S, A> game = getJoinedGame(id);
         if (game.isDesynced()) {
             return false;
         }
@@ -93,12 +112,24 @@ public class GameClientModule<S, A> extends GameModule<S, A> {
         }
     }
 
-    public ClientGameData<S, A> getGame(UUID id) {
+    public void subscribeToGamesList() {
+        connection.sendTCP(new SubscribeGamesList());
+    }
+
+    public void unsubscribeFromGamesList() {
+        connection.sendTCP(new UnsubscribeGamesList());
+    }
+
+    public ClientGameData<S, A> getJoinedGame(UUID id) {
         return games.get(id);
     }
 
-    public List<ClientGameData<S, A>> getGames() {
+    public List<ClientGameData<S, A>> getJoinedGames() {
         return List.copyOf(games.values());
+    }
+
+    public Set<UUID> getGamesList() {
+        return Set.copyOf(gamesList);
     }
 
 }

@@ -63,7 +63,7 @@ public class NetworkGameIT {
 
         gameClient.startNewGame();
         block.takeUntil(GameJoinAck.class);
-        ClientGameData<Connect4Impl, Long> game = gameClient.getGames().get(0);
+        ClientGameData<Connect4Impl, Long> game = gameClient.getJoinedGames().get(0);
         while (pointer < actions.length) {
             long action = actions[pointer++];
             gameClient.sendAction(game.getId(), action);
@@ -84,7 +84,7 @@ public class NetworkGameIT {
 
         gameClient.startNewGame();
         block.takeUntil(GameJoinAck.class);
-        ClientGameData<Connect4Impl, Long> game = gameClient.getGames().get(0);
+        ClientGameData<Connect4Impl, Long> game = gameClient.getJoinedGames().get(0);
         gameClient.sendAction(game.getId(), 1L);
         block.takeUntil(GameAction.class);
         gameClient.applyAllActions(game.getId());
@@ -108,7 +108,7 @@ public class NetworkGameIT {
 
         gameClient.startNewGame();
         block.takeUntil(GameJoinAck.class);
-        ClientGameData<Connect4Impl, Long> game = gameClient.getGames().get(0);
+        ClientGameData<Connect4Impl, Long> game = gameClient.getJoinedGames().get(0);
         game.getState().own = ~0;
         gameClient.sendAction(game.getId(), 1L);
         block.takeUntil(GameAction.class);
@@ -116,7 +116,7 @@ public class NetworkGameIT {
         assertFalse(updated);
         assertTrue(game.isDesynced());
         block.takeUntil(GameJoinAck.class);
-        ClientGameData<Connect4Impl, Long> resyncedGame = gameClient.getGame(game.getId());
+        ClientGameData<Connect4Impl, Long> resyncedGame = gameClient.getJoinedGame(game.getId());
         assertFalse(resyncedGame.isDesynced());
         System.out.println();
         System.out.println(resyncedGame.getState());

@@ -7,6 +7,10 @@ import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameJoinAck;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameJoinRequest;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameStartRequest;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.ListGame;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.SubscribeGamesList;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.UnlistGame;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.UnsubscribeGamesList;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
@@ -16,8 +20,10 @@ import java.io.ByteArrayOutputStream;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +34,7 @@ public class GameServerModule<S, A> extends GameModule<S, A> {
 
     private final Map<UUID, ServerGameData<S, A>> games = new ConcurrentHashMap<>();
     private final Supplier<Connection[]> connectionsSupply;
+    private final Set<Integer> gamesListSubscribers = new CopyOnWriteArraySet<>();
 
     public GameServerModule(GameService<S, A> gameService, Supplier<Connection[]> connectionsSupply) {
         super(gameService);
@@ -37,6 +44,7 @@ public class GameServerModule<S, A> extends GameModule<S, A> {
     @Override
     public void disconnected(Connection connection) {
         removeSpectator(connection.getID());
+        gamesListSubscribers.remove(connection.getID());
     }
 
     @Override
@@ -58,6 +66,24 @@ public class GameServerModule<S, A> extends GameModule<S, A> {
         } else if (object instanceof GameStartRequest) {
             UUID gameId = startNewGame();
             join(connection, gameId);
+        } else if (object instanceof SubscribeGamesList) {
+            subscribeToGamesList(connection);
+        } else if (object instanceof UnsubscribeGamesList) {
+            unsubscribeFromMovesList(connection);
+        }
+    }
+
+    public void subscribeToGamesList(Connection connection) {
+        gamesListSubscribers.add(connection.getID());
+        for (UUID gameId : games.keySet()) {
+            connection.sendTCP(new ListGame(gameId));
+        }
+    }
+
+    public void unsubscribeFromMovesList(Connection connection) {
+        gamesListSubscribers.remove(connection.getID());
+        for (UUID gameId : games.keySet()) {
+            connection.sendTCP(new UnlistGame(gameId));
         }
     }
 
@@ -65,6 +91,11 @@ public class GameServerModule<S, A> extends GameModule<S, A> {
         UUID id = UUID.randomUUID();
         S state = gameService.startNewGame();
         games.put(id, new ServerGameData<>(id, state, new SecureRandom()));
+        for (Connection other : connectionsSupply.get()) {
+            if (gamesListSubscribers.contains(other.getID())) {
+                other.sendTCP(new ListGame(id));
+            }
+        }
         return id;
     }
 
