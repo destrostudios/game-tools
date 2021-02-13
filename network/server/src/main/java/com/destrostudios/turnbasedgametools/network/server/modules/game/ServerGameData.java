@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-public class ServerGameData<S, A> {
+public class ServerGameData<S> {
     public final UUID id;
     private final Set<Integer> connections = new CopyOnWriteArraySet<>();
     public S state;

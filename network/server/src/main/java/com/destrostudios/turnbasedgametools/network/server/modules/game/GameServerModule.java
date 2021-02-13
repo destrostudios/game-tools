@@ -28,15 +28,15 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GameServerModule<S, A> extends GameModule<S, A> {
+public class GameServerModule<S, A, P> extends GameModule<S, A, P> {
 
     private static final Logger LOG = LoggerFactory.getLogger(GameServerModule.class);
 
-    private final Map<UUID, ServerGameData<S, A>> games = new ConcurrentHashMap<>();
+    private final Map<UUID, ServerGameData<S>> games = new ConcurrentHashMap<>();
     private final Supplier<Connection[]> connectionsSupply;
     private final Set<Integer> gamesListSubscribers = new CopyOnWriteArraySet<>();
 
-    public GameServerModule(GameService<S, A> gameService, Supplier<Connection[]> connectionsSupply) {
+    public GameServerModule(GameService<S, A, P> gameService, Supplier<Connection[]> connectionsSupply) {
         super(gameService);
         this.connectionsSupply = connectionsSupply;
     }
@@ -64,7 +64,8 @@ public class GameServerModule<S, A> extends GameModule<S, A> {
             GameActionRequest message = (GameActionRequest) object;
             applyAction(message.game, (A) message.action);
         } else if (object instanceof GameStartRequest) {
-            UUID gameId = startNewGame();
+            GameStartRequest<P> message = (GameStartRequest<P>) object;
+            UUID gameId = startNewGame(message.params);
             join(connection, gameId);
         } else if (object instanceof SubscribeGamesList) {
             subscribeToGamesList(connection);
@@ -87,9 +88,9 @@ public class GameServerModule<S, A> extends GameModule<S, A> {
         }
     }
 
-    public UUID startNewGame() {
+    public UUID startNewGame(P params) {
         UUID id = UUID.randomUUID();
-        S state = gameService.startNewGame();
+        S state = gameService.startNewGame(params);
         games.put(id, new ServerGameData<>(id, state, new SecureRandom()));
         for (Connection other : connectionsSupply.get()) {
             if (gamesListSubscribers.contains(other.getID())) {
@@ -100,13 +101,13 @@ public class GameServerModule<S, A> extends GameModule<S, A> {
     }
 
     public void join(Connection connection, UUID gameId) {
-        ServerGameData<S, A> game = games.get(gameId);
+        ServerGameData<S> game = games.get(gameId);
         game.addConnection(connection.getID());
         connection.sendTCP(new GameJoinAck(game.id, game.state));
     }
 
     public void applyAction(UUID gameId, A action) {
-        ServerGameData<S, A> game = games.get(gameId);
+        ServerGameData<S> game = games.get(gameId);
         MasterRandom random = new MasterRandom(game.random);
 
         ByteArrayOutputStream backupOutputStream = new ByteArrayOutputStream();
@@ -135,16 +136,16 @@ public class GameServerModule<S, A> extends GameModule<S, A> {
     }
 
     public void removeSpectator(int connectionId) {
-        for (ServerGameData<S, A> game : games.values()) {
+        for (ServerGameData<S> game : games.values()) {
             game.removeConnection(connectionId);
         }
     }
 
-    public ServerGameData<S, A> getGame(UUID gameId) {
+    public ServerGameData<S> getGame(UUID gameId) {
         return games.get(gameId);
     }
 
-    public List<ServerGameData<S, A>> getGames() {
+    public List<ServerGameData<S>> getGames() {
         return List.copyOf(games.values());
     }
 

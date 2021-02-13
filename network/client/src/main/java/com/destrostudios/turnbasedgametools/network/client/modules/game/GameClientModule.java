@@ -21,15 +21,15 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GameClientModule<S, A> extends GameModule<S, A> {
+public class GameClientModule<S, A, P> extends GameModule<S, A, P> {
 
     private static final Logger LOG = LoggerFactory.getLogger(GameClientModule.class);
 
     private final Connection connection;
-    private final Map<UUID, ClientGameData<S, A>> games = new ConcurrentHashMap<>();
+    private final Map<UUID, ClientGameData<S, A, P>> games = new ConcurrentHashMap<>();
     private final Set<UUID> gamesList = new CopyOnWriteArraySet<>();
 
-    public GameClientModule(GameService<S, A> gameService, Connection connection) {
+    public GameClientModule(GameService<S, A, P> gameService, Connection connection) {
         super(gameService);
         this.connection = connection;
     }
@@ -62,12 +62,12 @@ public class GameClientModule<S, A> extends GameModule<S, A> {
     }
 
     private void onAction(UUID gameId, A action, int[] randomHistory) {
-        ClientGameData<S, A> game = games.get(gameId);
+        ClientGameData<S, A, P> game = games.get(gameId);
         game.enqueueAction(action, randomHistory);
     }
 
-    public void startNewGame() {
-        connection.sendTCP(new GameStartRequest());
+    public void startNewGame(P params) {
+        connection.sendTCP(new GameStartRequest(params));
     }
 
     public void sendAction(UUID gameId, Object action) {
@@ -79,7 +79,7 @@ public class GameClientModule<S, A> extends GameModule<S, A> {
     }
 
     public boolean applyNextAction(UUID id) {
-        ClientGameData<S, A> game = getJoinedGame(id);
+        ClientGameData<S, A, P> game = getJoinedGame(id);
         if (game.isDesynced()) {
             return false;
         }
@@ -94,7 +94,7 @@ public class GameClientModule<S, A> extends GameModule<S, A> {
     }
 
     public boolean applyAllActions(UUID id) {
-        ClientGameData<S, A> game = getJoinedGame(id);
+        ClientGameData<S, A, P> game = getJoinedGame(id);
         if (game.isDesynced()) {
             return false;
         }
@@ -120,11 +120,11 @@ public class GameClientModule<S, A> extends GameModule<S, A> {
         connection.sendTCP(new UnsubscribeGamesList());
     }
 
-    public ClientGameData<S, A> getJoinedGame(UUID id) {
+    public ClientGameData<S, A, P> getJoinedGame(UUID id) {
         return games.get(id);
     }
 
-    public List<ClientGameData<S, A>> getJoinedGames() {
+    public List<ClientGameData<S, A, P>> getJoinedGames() {
         return List.copyOf(games.values());
     }
 

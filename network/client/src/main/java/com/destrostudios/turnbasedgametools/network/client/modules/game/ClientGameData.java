@@ -5,7 +5,7 @@ import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class ClientGameData<S, A> {
+public class ClientGameData<S, A, P> {
 
     private boolean desynced = false;
     private final UUID id;
@@ -21,7 +21,7 @@ public class ClientGameData<S, A> {
         pendingActions.offer(new ActionReplay<>(action, randomHistory));
     }
 
-    public boolean applyNextAction(GameService<S, A> service) {
+    public boolean applyNextAction(GameService<S, A, P> service) {
         ActionReplay<A> actionReplay;
         if ((actionReplay = pendingActions.poll()) != null) {
             state = service.applyAction(state, actionReplay.action, new SlaveRandom(actionReplay.randomHistory));

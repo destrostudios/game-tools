@@ -3,6 +3,7 @@ package com.destrostudios.turnbasedgametools.network.shared.modules.game.message
 import java.util.UUID;
 
 public class UnlistGame {
+
     public UUID gameId;
 
     UnlistGame() {

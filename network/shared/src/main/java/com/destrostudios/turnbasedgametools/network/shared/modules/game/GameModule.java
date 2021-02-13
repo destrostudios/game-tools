@@ -14,11 +14,11 @@ import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages
 import com.esotericsoftware.kryo.Kryo;
 import java.util.UUID;
 
-public abstract class GameModule<S, A> extends NetworkModule {
+public abstract class GameModule<S, A, P> extends NetworkModule {
 
-    protected final GameService<S, A> gameService;
+    protected final GameService<S, A, P> gameService;
 
-    public GameModule(GameService<S, A> gameService) {
+    public GameModule(GameService<S, A, P> gameService) {
         this.gameService = gameService;
     }
 
@@ -42,7 +42,7 @@ public abstract class GameModule<S, A> extends NetworkModule {
         gameService.initialize(kryo);
     }
 
-    public GameService<S, A> getGameService() {
+    public GameService<S, A, P> getGameService() {
         return gameService;
     }
 }
