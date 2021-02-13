@@ -53,9 +53,6 @@ public class GamesListIT {
         GameClientModule<Connect4Impl, Long> gameClient = client.getModule(GameClientModule.class);
         BlockingMessageModule block = client.getModule(BlockingMessageModule.class);
 
-        int pointer = 0;
-        long[] actions = {1L, 2L, 128L};
-
         gameClient.startNewGame();
         gameClient.subscribeToGamesList();
         block.takeUntil(ListGame.class);
