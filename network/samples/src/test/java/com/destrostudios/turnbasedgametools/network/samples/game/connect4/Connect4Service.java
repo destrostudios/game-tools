@@ -1,4 +1,4 @@
-package com.destrostudios.turnbasedgametools.network.samples.connect4;
+package com.destrostudios.turnbasedgametools.network.samples.game.connect4;
 
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.GameService;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.NetworkRandom;

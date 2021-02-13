@@ -1,10 +1,11 @@
-package com.destrostudios.turnbasedgametools.network;
+package com.destrostudios.turnbasedgametools.network.samples.game;
 
+import com.destrostudios.turnbasedgametools.network.BlockingMessageModule;
 import com.destrostudios.turnbasedgametools.network.client.ToolsClient;
 import com.destrostudios.turnbasedgametools.network.client.modules.game.ClientGameData;
 import com.destrostudios.turnbasedgametools.network.client.modules.game.GameClientModule;
-import com.destrostudios.turnbasedgametools.network.samples.connect4.Connect4Impl;
-import com.destrostudios.turnbasedgametools.network.samples.connect4.Connect4Service;
+import com.destrostudios.turnbasedgametools.network.samples.game.connect4.Connect4Impl;
+import com.destrostudios.turnbasedgametools.network.samples.game.connect4.Connect4Service;
 import com.destrostudios.turnbasedgametools.network.server.ToolsServer;
 import com.destrostudios.turnbasedgametools.network.server.modules.game.GameServerModule;
 import com.destrostudios.turnbasedgametools.network.shared.NetworkUtil;
@@ -25,15 +26,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class NetworkIT {
+public class NetworkGameIT {
 
-    private GameService<Connect4Impl, Long> gameService;
     private ToolsServer server;
     private ToolsClient client;
 
     @Before
     public void setup() throws IOException {
-        gameService = new Connect4Service();
+        GameService<Connect4Impl, Long> gameService = new Connect4Service();
 
         Server kryoServer = new Server();
         server = new ToolsServer(kryoServer, new GameServerModule<>(gameService, kryoServer::getConnections), new PingModule());
@@ -49,7 +49,6 @@ public class NetworkIT {
         client.stop();
         server.stop();
 
-        gameService = null;
         server = null;
         client = null;
     }

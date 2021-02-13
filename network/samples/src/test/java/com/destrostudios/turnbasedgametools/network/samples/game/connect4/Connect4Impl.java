@@ -1,4 +1,4 @@
-package com.destrostudios.turnbasedgametools.network.samples.connect4;
+package com.destrostudios.turnbasedgametools.network.samples.game.connect4;
 
 public class Connect4Impl {
 

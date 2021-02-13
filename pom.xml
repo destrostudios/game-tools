@@ -21,7 +21,14 @@
         <version.slf4j>2.0.0-alpha1</version.slf4j>
         <version.junit>4.11</version.junit>
         <version.mockito>1.9.5</version.mockito>
+        <version.auth-token>093f998a7a12100a2136c0e7182a2a1ae9897f8b</version.auth-token>
     </properties>
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 
     <build>
         <plugins>
@@ -56,6 +63,11 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>com.github.destrostudios</groupId>
+            <artifactId>auth-token</artifactId>
+            <version>${version.auth-token}</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
         <dependency>
             <groupId>org.slf4j</groupId>
