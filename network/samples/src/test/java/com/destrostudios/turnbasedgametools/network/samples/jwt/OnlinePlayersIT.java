@@ -71,7 +71,7 @@ public class OnlinePlayersIT {
         jwtModule0.login(createJwt(user0));
         UserLogin userLogin = blockModule0.takeUntil(UserLogin.class);
         assertEquals(user0, userLogin.user);
-        assertEquals(Collections.singletonList(user0), jwtModule0.onlineUsers());
+        assertEquals(Collections.singletonList(user0), jwtModule0.getOnlineUsers());
     }
 
     @Test(timeout = 1000)
@@ -98,14 +98,14 @@ public class OnlinePlayersIT {
 
         List<JwtAuthenticationUser> expected = Arrays.asList(user0, user1);
 
-        assertEquals(expected, jwtModule0.onlineUsers());
-        assertEquals(expected, jwtModule1.onlineUsers());
+        assertEquals(expected, jwtModule0.getOnlineUsers());
+        assertEquals(expected, jwtModule1.getOnlineUsers());
 
         jwtModule0.logout();
         blockModule1.takeUntil(UserLogout.class);
 
         expected = Collections.singletonList(user1);
-        assertEquals(expected, jwtModule1.onlineUsers());
+        assertEquals(expected, jwtModule1.getOnlineUsers());
     }
 
     @Test(timeout = 1000)
@@ -139,8 +139,8 @@ public class OnlinePlayersIT {
 
         List<JwtAuthenticationUser> expected = Arrays.asList(user0, user1);
 
-        assertEquals(expected, jwtModule0.onlineUsers());
-        assertEquals(expected, jwtModule1.onlineUsers());
+        assertEquals(expected, jwtModule0.getOnlineUsers());
+        assertEquals(expected, jwtModule1.getOnlineUsers());
 
         jwtModule2.logout();
         clients[2].getKryoClient().sendTCP(new Ping());
@@ -150,8 +150,8 @@ public class OnlinePlayersIT {
         clients[1].getKryoClient().sendTCP(new Ping());
         blockModule1.takeUntil(Pong.class);
 
-        assertEquals(expected, jwtModule0.onlineUsers());
-        assertEquals(expected, jwtModule1.onlineUsers());
+        assertEquals(expected, jwtModule0.getOnlineUsers());
+        assertEquals(expected, jwtModule1.getOnlineUsers());
     }
 
     @Test(timeout = 1000)
@@ -178,14 +178,14 @@ public class OnlinePlayersIT {
 
         List<JwtAuthenticationUser> expected = Arrays.asList(user0, user1);
 
-        assertEquals(expected, jwtModule0.onlineUsers());
-        assertEquals(expected, jwtModule1.onlineUsers());
+        assertEquals(expected, jwtModule0.getOnlineUsers());
+        assertEquals(expected, jwtModule1.getOnlineUsers());
 
         clients[0].stop();
         blockModule1.takeUntil(UserLogout.class);
 
         expected = Collections.singletonList(user1);
-        assertEquals(expected, jwtModule1.onlineUsers());
+        assertEquals(expected, jwtModule1.getOnlineUsers());
     }
 
     private static String createJwt(JwtAuthenticationUser user) {

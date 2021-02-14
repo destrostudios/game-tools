@@ -1,5 +1,6 @@
 package com.destrostudios.turnbasedgametools.network.client.modules.jwt;
 
+import com.destrostudios.authtoken.JwtAuthentication;
 import com.destrostudios.authtoken.JwtAuthenticationUser;
 import com.destrostudios.authtoken.JwtService;
 import com.destrostudios.authtoken.NoValidateJwtService;
@@ -16,6 +17,7 @@ import java.util.TreeSet;
 
 public class JwtClientModule extends JwtModule {
 
+    private JwtAuthentication ownAuthentication;
     private final JwtService jwtService;
     private final Connection connection;
     private final Set<JwtAuthenticationUser> users = new TreeSet<>(Comparator.comparingLong(x -> x.id));
@@ -43,21 +45,24 @@ public class JwtClientModule extends JwtModule {
     @Override
     public void disconnected(Connection connection) {
         users.clear();
-    }
-
-    public JwtAuthenticationUser decode(String jwt) {
-        return jwtService.decode(jwt).user;
+        ownAuthentication = null;
     }
 
     public void login(String jwt) {
         connection.sendTCP(new Login(jwt));
+        ownAuthentication = jwtService.decode(jwt);
     }
 
     public void logout() {
         connection.sendTCP(new Logout());
+        ownAuthentication = null;
     }
 
-    public List<JwtAuthenticationUser> onlineUsers() {
+    public List<JwtAuthenticationUser> getOnlineUsers() {
         return List.copyOf(users);
+    }
+
+    public JwtAuthentication getOwnAuthentication() {
+        return ownAuthentication;
     }
 }
