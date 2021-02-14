@@ -154,6 +154,40 @@ public class OnlinePlayersIT {
         assertEquals(expected, jwtModule1.onlineUsers());
     }
 
+    @Test(timeout = 1000)
+    public void disconnect() throws InterruptedException {
+        BlockingMessageModule blockModule0 = clients[0].getModule(BlockingMessageModule.class);
+        JwtClientModule jwtModule0 = clients[0].getModule(JwtClientModule.class);
+        JwtAuthenticationUser user0 = new JwtAuthenticationUser();
+        user0.id = 178;
+        user0.login = "TestName";
+
+        BlockingMessageModule blockModule1 = clients[1].getModule(BlockingMessageModule.class);
+        JwtClientModule jwtModule1 = clients[1].getModule(JwtClientModule.class);
+        JwtAuthenticationUser user1 = new JwtAuthenticationUser();
+        user1.id = 5425;
+        user1.login = "Frank";
+
+        jwtModule0.login(createJwt(user0));
+        jwtModule1.login(createJwt(user1));
+
+        blockModule0.takeUntil(UserLogin.class);
+        blockModule0.takeUntil(UserLogin.class);
+        blockModule1.takeUntil(UserLogin.class);
+        blockModule1.takeUntil(UserLogin.class);
+
+        List<JwtAuthenticationUser> expected = Arrays.asList(user0, user1);
+
+        assertEquals(expected, jwtModule0.onlineUsers());
+        assertEquals(expected, jwtModule1.onlineUsers());
+
+        clients[0].stop();
+        blockModule1.takeUntil(UserLogout.class);
+
+        expected = Collections.singletonList(user1);
+        assertEquals(expected, jwtModule1.onlineUsers());
+    }
+
     private static String createJwt(JwtAuthenticationUser user) {
         Map<String, ?> map = Map.of("id", user.id, "login", user.login);
         return JWT.create()

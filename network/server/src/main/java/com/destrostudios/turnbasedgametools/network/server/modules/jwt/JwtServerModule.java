@@ -40,6 +40,9 @@ public class JwtServerModule extends JwtModule {
 
             login(connection, authentication.user);
         } else if (object instanceof Logout) {
+            for (JwtAuthenticationUser other : connectionToUser.values()) {
+                connection.sendTCP(new UserLogout(other));
+            }
             logout(connection);
         }
     }
@@ -68,10 +71,6 @@ public class JwtServerModule extends JwtModule {
     }
 
     public void logout(Connection connection) {
-        for (JwtAuthenticationUser other : connectionToUser.values()) {
-            connection.sendTCP(new UserLogout(other));
-        }
-
         JwtAuthenticationUser user = connectionToUser.remove(connection.getID());
         LOG.info("Connection {} logged out.", connection.getID());
 
