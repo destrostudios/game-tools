@@ -20,8 +20,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
 public class GamesListIT {
 
     private ToolsServer server;
@@ -57,16 +55,16 @@ public class GamesListIT {
         gameClient.startNewGame(new Connect4StartInfo());
         gameClient.subscribeToGamesList();
         block.takeUntil(ListGame.class);
-        assertEquals(1, gameClient.getGamesList().size());
+        assertEquals(1, gameClient.getGameParams().size());
 
         gameClient.startNewGame(new Connect4StartInfo());
         block.takeUntil(ListGame.class);
-        assertEquals(2, gameClient.getGamesList().size());
+        assertEquals(2, gameClient.getGameParams().size());
 
         gameClient.unsubscribeFromGamesList();
         block.takeUntil(UnlistGame.class);
         block.takeUntil(UnlistGame.class);
-        assertEquals(0, gameClient.getGamesList().size());
+        assertEquals(0, gameClient.getGameParams().size());
     }
 
 }

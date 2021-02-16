@@ -12,7 +12,7 @@ import com.destrostudios.turnbasedgametools.network.server.modules.game.GameServ
 import com.destrostudios.turnbasedgametools.network.shared.NetworkUtil;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.GameService;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameAction;
-import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameJoinAck;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameJoin;
 import com.destrostudios.turnbasedgametools.network.shared.modules.ping.PingModule;
 import com.destrostudios.turnbasedgametools.network.shared.modules.ping.messages.Ping;
 import com.destrostudios.turnbasedgametools.network.shared.modules.ping.messages.Pong;
@@ -63,7 +63,7 @@ public class NetworkGameIT {
         long[] actions = {1L, 2L, 128L};
 
         gameClient.startNewGame(new Connect4StartInfo());
-        block.takeUntil(GameJoinAck.class);
+        block.takeUntil(GameJoin.class);
         ClientGameData<Connect4Impl, Long, Connect4StartInfo> game = gameClient.getJoinedGames().get(0);
         while (pointer < actions.length) {
             long action = actions[pointer++];
@@ -84,7 +84,7 @@ public class NetworkGameIT {
         BlockingMessageModule block = client.getModule(BlockingMessageModule.class);
 
         gameClient.startNewGame(new Connect4StartInfo());
-        block.takeUntil(GameJoinAck.class);
+        block.takeUntil(GameJoin.class);
         ClientGameData<Connect4Impl, Long, Connect4StartInfo> game = gameClient.getJoinedGames().get(0);
         gameClient.sendAction(game.getId(), 1L);
         block.takeUntil(GameAction.class);
@@ -108,7 +108,7 @@ public class NetworkGameIT {
         BlockingMessageModule block = client.getModule(BlockingMessageModule.class);
 
         gameClient.startNewGame(new Connect4StartInfo());
-        block.takeUntil(GameJoinAck.class);
+        block.takeUntil(GameJoin.class);
         ClientGameData<Connect4Impl, Long, Connect4StartInfo> game = gameClient.getJoinedGames().get(0);
         game.getState().own = ~0;
         gameClient.sendAction(game.getId(), 1L);
@@ -116,7 +116,7 @@ public class NetworkGameIT {
         boolean updated = gameClient.applyAllActions(game.getId());
         assertFalse(updated);
         assertTrue(game.isDesynced());
-        block.takeUntil(GameJoinAck.class);
+        block.takeUntil(GameJoin.class);
         ClientGameData<Connect4Impl, Long, Connect4StartInfo> resyncedGame = gameClient.getJoinedGame(game.getId());
         assertFalse(resyncedGame.isDesynced());
         System.out.println();

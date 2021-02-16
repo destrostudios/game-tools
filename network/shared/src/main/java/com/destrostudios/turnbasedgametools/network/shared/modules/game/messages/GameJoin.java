@@ -2,15 +2,15 @@ package com.destrostudios.turnbasedgametools.network.shared.modules.game.message
 
 import java.util.UUID;
 
-public class GameJoinAck {
+public class GameJoin {
 
     public UUID gameId;
     public Object state;
 
-    GameJoinAck() {
+    GameJoin() {
     }
 
-    public GameJoinAck(UUID gameId, Object state) {
+    public GameJoin(UUID gameId, Object state) {
         this.gameId = gameId;
         this.state = state;
     }

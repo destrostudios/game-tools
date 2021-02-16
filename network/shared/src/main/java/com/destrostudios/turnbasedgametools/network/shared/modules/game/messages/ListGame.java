@@ -2,14 +2,16 @@ package com.destrostudios.turnbasedgametools.network.shared.modules.game.message
 
 import java.util.UUID;
 
-public class ListGame {
+public class ListGame<P> {
 
     public UUID gameId;
+    public P params;
 
     ListGame() {
     }
 
-    public ListGame(UUID gameId) {
+    public ListGame(UUID gameId, P params) {
         this.gameId = gameId;
+        this.params = params;
     }
 }

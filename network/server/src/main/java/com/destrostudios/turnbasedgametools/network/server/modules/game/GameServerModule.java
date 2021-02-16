@@ -4,9 +4,8 @@ import com.destrostudios.turnbasedgametools.network.shared.modules.game.GameModu
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.GameService;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameAction;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameActionRequest;
-import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameJoinAck;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameJoin;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameJoinRequest;
-import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameStartRequest;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.ListGame;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.SubscribeGamesList;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.UnlistGame;
@@ -17,7 +16,6 @@ import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryonet.Connection;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +26,7 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GameServerModule<S, A, P> extends GameModule<S, A, P> {
+public class GameServerModule<S, A> extends GameModule<S, A> {
 
     private static final Logger LOG = LoggerFactory.getLogger(GameServerModule.class);
 
@@ -36,7 +34,7 @@ public class GameServerModule<S, A, P> extends GameModule<S, A, P> {
     private final Supplier<Connection[]> connectionsSupply;
     private final Set<Integer> gamesListSubscribers = new CopyOnWriteArraySet<>();
 
-    public GameServerModule(GameService<S, A, P> gameService, Supplier<Connection[]> connectionsSupply) {
+    public GameServerModule(GameService<S, A> gameService, Supplier<Connection[]> connectionsSupply) {
         super(gameService);
         this.connectionsSupply = connectionsSupply;
     }
@@ -63,10 +61,6 @@ public class GameServerModule<S, A, P> extends GameModule<S, A, P> {
         } else if (object instanceof GameActionRequest) {
             GameActionRequest message = (GameActionRequest) object;
             applyAction(message.game, (A) message.action);
-        } else if (object instanceof GameStartRequest) {
-            GameStartRequest<P> message = (GameStartRequest<P>) object;
-            UUID gameId = startNewGame(message.params);
-            join(connection, gameId);
         } else if (object instanceof SubscribeGamesList) {
             subscribeToGamesList(connection);
         } else if (object instanceof UnsubscribeGamesList) {
@@ -77,7 +71,7 @@ public class GameServerModule<S, A, P> extends GameModule<S, A, P> {
     public void subscribeToGamesList(Connection connection) {
         gamesListSubscribers.add(connection.getID());
         for (UUID gameId : games.keySet()) {
-            connection.sendTCP(new ListGame(gameId));
+            connection.sendTCP(new ListGame(gameId, null));// TODO
         }
     }
 
@@ -88,22 +82,10 @@ public class GameServerModule<S, A, P> extends GameModule<S, A, P> {
         }
     }
 
-    public UUID startNewGame(P params) {
-        UUID id = UUID.randomUUID();
-        S state = gameService.startNewGame(params);
-        games.put(id, new ServerGameData<>(id, state, new SecureRandom()));
-        for (Connection other : connectionsSupply.get()) {
-            if (gamesListSubscribers.contains(other.getID())) {
-                other.sendTCP(new ListGame(id));
-            }
-        }
-        return id;
-    }
-
     public void join(Connection connection, UUID gameId) {
         ServerGameData<S> game = games.get(gameId);
         game.addConnection(connection.getID());
-        connection.sendTCP(new GameJoinAck(game.id, game.state));
+        connection.sendTCP(new GameJoin(game.id, game.state));
     }
 
     public void applyAction(UUID gameId, A action) {

@@ -4,9 +4,8 @@ import com.destrostudios.turnbasedgametools.network.shared.UuidSerializer;
 import com.destrostudios.turnbasedgametools.network.shared.modules.NetworkModule;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameAction;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameActionRequest;
-import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameJoinAck;
+import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameJoin;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameJoinRequest;
-import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameStartRequest;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.ListGame;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.SubscribeGamesList;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.UnlistGame;
@@ -14,11 +13,11 @@ import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages
 import com.esotericsoftware.kryo.Kryo;
 import java.util.UUID;
 
-public abstract class GameModule<S, A, P> extends NetworkModule {
+public abstract class GameModule<S, A> extends NetworkModule {
 
-    protected final GameService<S, A, P> gameService;
+    protected final GameService<S, A> gameService;
 
-    public GameModule(GameService<S, A, P> gameService) {
+    public GameModule(GameService<S, A> gameService) {
         this.gameService = gameService;
     }
 
@@ -30,8 +29,7 @@ public abstract class GameModule<S, A, P> extends NetworkModule {
 
         kryo.register(GameAction.class);
         kryo.register(GameActionRequest.class);
-        kryo.register(GameJoinAck.class);
-        kryo.register(GameStartRequest.class);
+        kryo.register(GameJoin.class);
         kryo.register(GameJoinRequest.class);
 
         kryo.register(SubscribeGamesList.class);
@@ -42,7 +40,7 @@ public abstract class GameModule<S, A, P> extends NetworkModule {
         gameService.initialize(kryo);
     }
 
-    public GameService<S, A, P> getGameService() {
+    public GameService<S, A> getGameService() {
         return gameService;
     }
 }
