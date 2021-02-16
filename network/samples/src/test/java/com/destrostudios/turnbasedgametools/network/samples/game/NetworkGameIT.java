@@ -4,11 +4,14 @@ import com.destrostudios.turnbasedgametools.network.BlockingMessageModule;
 import com.destrostudios.turnbasedgametools.network.client.ToolsClient;
 import com.destrostudios.turnbasedgametools.network.client.modules.game.ClientGameData;
 import com.destrostudios.turnbasedgametools.network.client.modules.game.GameClientModule;
+import com.destrostudios.turnbasedgametools.network.client.modules.game.GameStartClientModule;
 import com.destrostudios.turnbasedgametools.network.samples.game.connect4.Connect4Impl;
 import com.destrostudios.turnbasedgametools.network.samples.game.connect4.Connect4Service;
 import com.destrostudios.turnbasedgametools.network.samples.game.connect4.Connect4StartInfo;
 import com.destrostudios.turnbasedgametools.network.server.ToolsServer;
 import com.destrostudios.turnbasedgametools.network.server.modules.game.GameServerModule;
+import com.destrostudios.turnbasedgametools.network.server.modules.game.GameStartServerModule;
+import com.destrostudios.turnbasedgametools.network.server.modules.game.ServerGameData;
 import com.destrostudios.turnbasedgametools.network.shared.NetworkUtil;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.GameService;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameAction;
@@ -16,9 +19,14 @@ import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages
 import com.destrostudios.turnbasedgametools.network.shared.modules.ping.PingModule;
 import com.destrostudios.turnbasedgametools.network.shared.modules.ping.messages.Ping;
 import com.destrostudios.turnbasedgametools.network.shared.modules.ping.messages.Pong;
+import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
+import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
 import java.io.IOException;
+import java.util.Random;
+import java.util.UUID;
+import java.util.function.Consumer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,14 +42,28 @@ public class NetworkGameIT {
 
     @Before
     public void setup() throws IOException {
-        GameService<Connect4Impl, Long, Connect4StartInfo> gameService = new Connect4Service();
-
         Server kryoServer = new Server();
-        server = new ToolsServer(kryoServer, new GameServerModule<>(gameService, kryoServer::getConnections), new PingModule());
+        GameService<Connect4Impl, Long> gameService = new Connect4Service();
+        Consumer<Kryo> registerParams = kryo -> kryo.register(Connect4StartInfo.class);
+        GameServerModule<Connect4Impl, Long> gameServerModule = new GameServerModule<>(gameService, kryoServer::getConnections);
+        GameStartServerModule<Connect4StartInfo> gameStartServerModule = new GameStartServerModule<>(registerParams) {
+            @Override
+            public void startGameRequest(Connection connection, Connect4StartInfo params) {
+                UUID gameId = UUID.randomUUID();
+                gameServerModule.registerGame(new ServerGameData<>(gameId, new Connect4Impl(params.width, params.height), new Random(3)));
+                for (Connection other : kryoServer.getConnections()) {
+                    gameServerModule.join(other, gameId);
+                }
+            }
+        };
+
+        server = new ToolsServer(kryoServer, gameServerModule, gameStartServerModule, new PingModule());
         server.start(NetworkUtil.PORT);
 
         Client kryoClient = new Client();
-        client = new ToolsClient(kryoClient, new GameClientModule<>(gameService, kryoClient), new PingModule(), new BlockingMessageModule());
+        GameClientModule<Connect4Impl, Long> gameClientModule = new GameClientModule<>(gameService, kryoClient);
+        GameStartClientModule<Connect4StartInfo> gameStartClientModule = new GameStartClientModule<>(registerParams, kryoClient);
+        client = new ToolsClient(kryoClient, gameClientModule, gameStartClientModule, new PingModule(), new BlockingMessageModule());
         client.start(1000, "localhost", NetworkUtil.PORT);
     }
 
@@ -56,15 +78,16 @@ public class NetworkGameIT {
 
     @Test(timeout = 1000)
     public void sampleGame() throws InterruptedException {
-        GameClientModule<Connect4Impl, Long, Connect4StartInfo> gameClient = client.getModule(GameClientModule.class);
+        GameClientModule<Connect4Impl, Long> gameClient = client.getModule(GameClientModule.class);
+        GameStartClientModule<Connect4StartInfo> gameStartClientModule = client.getModule(GameStartClientModule.class);
         BlockingMessageModule block = client.getModule(BlockingMessageModule.class);
 
         int pointer = 0;
         long[] actions = {1L, 2L, 128L};
 
-        gameClient.startNewGame(new Connect4StartInfo());
+        gameStartClientModule.startNewGame(new Connect4StartInfo());
         block.takeUntil(GameJoin.class);
-        ClientGameData<Connect4Impl, Long, Connect4StartInfo> game = gameClient.getJoinedGames().get(0);
+        ClientGameData<Connect4Impl, Long> game = gameClient.getJoinedGames().get(0);
         while (pointer < actions.length) {
             long action = actions[pointer++];
             gameClient.sendAction(game.getId(), action);
@@ -80,12 +103,13 @@ public class NetworkGameIT {
 
     @Test(timeout = 1000)
     public void rollbackAction() throws InterruptedException {
-        GameClientModule<Connect4Impl, Long, Connect4StartInfo> gameClient = client.getModule(GameClientModule.class);
+        GameClientModule<Connect4Impl, Long> gameClient = client.getModule(GameClientModule.class);
+        GameStartClientModule<Connect4StartInfo> gameStartClientModule = client.getModule(GameStartClientModule.class);
         BlockingMessageModule block = client.getModule(BlockingMessageModule.class);
 
-        gameClient.startNewGame(new Connect4StartInfo());
+        gameStartClientModule.startNewGame(new Connect4StartInfo());
         block.takeUntil(GameJoin.class);
-        ClientGameData<Connect4Impl, Long, Connect4StartInfo> game = gameClient.getJoinedGames().get(0);
+        ClientGameData<Connect4Impl, Long> game = gameClient.getJoinedGames().get(0);
         gameClient.sendAction(game.getId(), 1L);
         block.takeUntil(GameAction.class);
         gameClient.applyAllActions(game.getId());
@@ -104,12 +128,13 @@ public class NetworkGameIT {
 
     @Test(timeout = 1000)
     public void recoverFromDesync() throws InterruptedException {
-        GameClientModule<Connect4Impl, Long, Connect4StartInfo> gameClient = client.getModule(GameClientModule.class);
+        GameClientModule<Connect4Impl, Long> gameClient = client.getModule(GameClientModule.class);
+        GameStartClientModule<Connect4StartInfo> gameStartClientModule = client.getModule(GameStartClientModule.class);
         BlockingMessageModule block = client.getModule(BlockingMessageModule.class);
 
-        gameClient.startNewGame(new Connect4StartInfo());
+        gameStartClientModule.startNewGame(new Connect4StartInfo());
         block.takeUntil(GameJoin.class);
-        ClientGameData<Connect4Impl, Long, Connect4StartInfo> game = gameClient.getJoinedGames().get(0);
+        ClientGameData<Connect4Impl, Long> game = gameClient.getJoinedGames().get(0);
         game.getState().own = ~0;
         gameClient.sendAction(game.getId(), 1L);
         block.takeUntil(GameAction.class);
@@ -117,7 +142,7 @@ public class NetworkGameIT {
         assertFalse(updated);
         assertTrue(game.isDesynced());
         block.takeUntil(GameJoin.class);
-        ClientGameData<Connect4Impl, Long, Connect4StartInfo> resyncedGame = gameClient.getJoinedGame(game.getId());
+        ClientGameData<Connect4Impl, Long> resyncedGame = gameClient.getJoinedGame(game.getId());
         assertFalse(resyncedGame.isDesynced());
         System.out.println();
         System.out.println(resyncedGame.getState());

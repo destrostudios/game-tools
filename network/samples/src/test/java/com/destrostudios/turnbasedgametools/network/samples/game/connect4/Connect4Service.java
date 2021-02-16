@@ -7,7 +7,7 @@ import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-public class Connect4Service implements GameService<Connect4Impl, Long, Connect4StartInfo> {
+public class Connect4Service implements GameService<Connect4Impl, Long> {
 
     @Override
     public void initialize(Kryo kryo) {
@@ -29,11 +29,6 @@ public class Connect4Service implements GameService<Connect4Impl, Long, Connect4
             }
         });
         kryo.register(Connect4StartInfo.class);
-    }
-
-    @Override
-    public Connect4Impl startNewGame(Connect4StartInfo params) {
-        return new Connect4Impl(params.width, params.height);
     }
 
     @Override

@@ -2,23 +2,28 @@ package com.destrostudios.turnbasedgametools.network.samples.game;
 
 import com.destrostudios.turnbasedgametools.network.BlockingMessageModule;
 import com.destrostudios.turnbasedgametools.network.client.ToolsClient;
-import com.destrostudios.turnbasedgametools.network.client.modules.game.GameClientModule;
-import com.destrostudios.turnbasedgametools.network.samples.game.connect4.Connect4Impl;
-import com.destrostudios.turnbasedgametools.network.samples.game.connect4.Connect4Service;
+import com.destrostudios.turnbasedgametools.network.client.modules.game.GameStartClientModule;
+import com.destrostudios.turnbasedgametools.network.client.modules.game.LobbyClientModule;
 import com.destrostudios.turnbasedgametools.network.samples.game.connect4.Connect4StartInfo;
 import com.destrostudios.turnbasedgametools.network.server.ToolsServer;
-import com.destrostudios.turnbasedgametools.network.server.modules.game.GameServerModule;
+import com.destrostudios.turnbasedgametools.network.server.modules.game.GameStartServerModule;
+import com.destrostudios.turnbasedgametools.network.server.modules.game.LobbyServerModule;
 import com.destrostudios.turnbasedgametools.network.shared.NetworkUtil;
-import com.destrostudios.turnbasedgametools.network.shared.modules.game.GameService;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.ListGame;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.UnlistGame;
 import com.destrostudios.turnbasedgametools.network.shared.modules.ping.PingModule;
+import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
+import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
 import java.io.IOException;
+import java.util.UUID;
+import java.util.function.Consumer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class GamesListIT {
 
@@ -27,14 +32,22 @@ public class GamesListIT {
 
     @Before
     public void setup() throws IOException {
-        GameService<Connect4Impl, Long, Connect4StartInfo> gameService = new Connect4Service();
-
         Server kryoServer = new Server();
-        server = new ToolsServer(kryoServer, new GameServerModule<>(gameService, kryoServer::getConnections), new PingModule());
+        Consumer<Kryo> registerParams = kryo -> kryo.register(Connect4StartInfo.class);
+        LobbyServerModule<Connect4StartInfo> lobbyServerModule = new LobbyServerModule<>(registerParams, kryoServer::getConnections);
+        GameStartServerModule<Connect4StartInfo> gameStartServerModule = new GameStartServerModule<>(registerParams) {
+            @Override
+            public void startGameRequest(Connection connection, Connect4StartInfo params) {
+                lobbyServerModule.listGame(UUID.randomUUID(), params);
+            }
+        };
+
+
+        server = new ToolsServer(kryoServer, lobbyServerModule, gameStartServerModule, new PingModule());
         server.start(NetworkUtil.PORT);
 
         Client kryoClient = new Client();
-        client = new ToolsClient(kryoClient, new GameClientModule<>(gameService, kryoClient), new PingModule(), new BlockingMessageModule());
+        client = new ToolsClient(kryoClient, new LobbyClientModule<>(registerParams, kryoClient), new GameStartClientModule<>(registerParams, kryoClient), new PingModule(), new BlockingMessageModule());
         client.start(1000, "localhost", NetworkUtil.PORT);
     }
 
@@ -49,22 +62,23 @@ public class GamesListIT {
 
     @Test(timeout = 1000)
     public void sampleGame() throws InterruptedException {
-        GameClientModule<Connect4Impl, Long, Connect4StartInfo> gameClient = client.getModule(GameClientModule.class);
+        LobbyClientModule<Connect4StartInfo> lobbyClient = client.getModule(LobbyClientModule.class);
+        GameStartClientModule<Connect4StartInfo> startClient = client.getModule(GameStartClientModule.class);
         BlockingMessageModule block = client.getModule(BlockingMessageModule.class);
 
-        gameClient.startNewGame(new Connect4StartInfo());
-        gameClient.subscribeToGamesList();
+        startClient.startNewGame(new Connect4StartInfo());
+        lobbyClient.subscribeToGamesList();
         block.takeUntil(ListGame.class);
-        assertEquals(1, gameClient.getGameParams().size());
+        assertEquals(1, lobbyClient.getListedGames().size());
 
-        gameClient.startNewGame(new Connect4StartInfo());
+        startClient.startNewGame(new Connect4StartInfo());
         block.takeUntil(ListGame.class);
-        assertEquals(2, gameClient.getGameParams().size());
+        assertEquals(2, lobbyClient.getListedGames().size());
 
-        gameClient.unsubscribeFromGamesList();
+        lobbyClient.unsubscribeFromGamesList();
         block.takeUntil(UnlistGame.class);
         block.takeUntil(UnlistGame.class);
-        assertEquals(0, gameClient.getGameParams().size());
+        assertEquals(0, lobbyClient.getListedGames().size());
     }
 
 }

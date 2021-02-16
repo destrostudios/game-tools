@@ -6,22 +6,16 @@ import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameActionRequest;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameJoin;
 import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.GameJoinRequest;
-import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.ListGame;
-import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.SubscribeGamesList;
-import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.UnlistGame;
-import com.destrostudios.turnbasedgametools.network.shared.modules.game.messages.UnsubscribeGamesList;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryonet.Connection;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +24,8 @@ public class GameServerModule<S, A> extends GameModule<S, A> {
 
     private static final Logger LOG = LoggerFactory.getLogger(GameServerModule.class);
 
-    private final Map<UUID, ServerGameData<S>> games = new ConcurrentHashMap<>();
+    private final Map<UUID, ServerGameData<S>> games = new HashMap<>();
     private final Supplier<Connection[]> connectionsSupply;
-    private final Set<Integer> gamesListSubscribers = new CopyOnWriteArraySet<>();
 
     public GameServerModule(GameService<S, A> gameService, Supplier<Connection[]> connectionsSupply) {
         super(gameService);
@@ -42,44 +35,25 @@ public class GameServerModule<S, A> extends GameModule<S, A> {
     @Override
     public void disconnected(Connection connection) {
         removeSpectator(connection.getID());
-        gamesListSubscribers.remove(connection.getID());
     }
 
     @Override
     public void received(Connection connection, Object object) {
-        try {
-            handleReceivedMessage(connection, object);
-        } catch (Throwable t) {
-            LOG.error("Exception when handling received message {} from connection {}.", object, connection.getID(), t);
-        }
-    }
-
-    private void handleReceivedMessage(Connection connection, Object object) {
         if (object instanceof GameJoinRequest) {
             GameJoinRequest message = (GameJoinRequest) object;
             join(connection, message.gameId);
         } else if (object instanceof GameActionRequest) {
             GameActionRequest message = (GameActionRequest) object;
             applyAction(message.game, (A) message.action);
-        } else if (object instanceof SubscribeGamesList) {
-            subscribeToGamesList(connection);
-        } else if (object instanceof UnsubscribeGamesList) {
-            unsubscribeFromMovesList(connection);
         }
     }
 
-    public void subscribeToGamesList(Connection connection) {
-        gamesListSubscribers.add(connection.getID());
-        for (UUID gameId : games.keySet()) {
-            connection.sendTCP(new ListGame(gameId, null));// TODO
-        }
+    public void registerGame(ServerGameData<S> game) {
+        games.put(game.id, game);
     }
 
-    public void unsubscribeFromMovesList(Connection connection) {
-        gamesListSubscribers.remove(connection.getID());
-        for (UUID gameId : games.keySet()) {
-            connection.sendTCP(new UnlistGame(gameId));
-        }
+    public void unregisterGame(UUID gameId) {
+        games.remove(gameId);
     }
 
     public void join(Connection connection, UUID gameId) {
