@@ -10,7 +10,6 @@ import com.destrostudios.turnbasedgametools.network.shared.modules.jwt.messages.
 import com.destrostudios.turnbasedgametools.network.shared.modules.jwt.messages.UserLogout;
 import com.esotericsoftware.kryonet.Connection;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -83,7 +82,7 @@ public class JwtServerModule extends JwtModule {
         }
     }
 
-    public List<JwtAuthenticationUser> onlineUsers() {
-        return List.copyOf(connectionToUser.values());
+    public Map<Integer, JwtAuthenticationUser> getConnectionToUserMap() {
+        return Map.copyOf(connectionToUser);
     }
 }
