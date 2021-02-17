@@ -82,7 +82,7 @@ public class JwtServerModule extends JwtModule {
         }
     }
 
-    public Map<Integer, JwtAuthenticationUser> getConnectionToUserMap() {
-        return Map.copyOf(connectionToUser);
+    public JwtAuthenticationUser getUser(int connectionId) {
+        return connectionToUser.get(connectionId);
     }
 }
