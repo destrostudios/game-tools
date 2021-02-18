@@ -4,7 +4,7 @@ import java.util.function.Predicate;
 
 public class LineOfSight {
 
-    public static boolean inLineOfSight(Predicate<Position> isSeeThrough, Position source, Position target) {
+    public boolean inLineOfSight(Predicate<Position> isSeeThrough, Position source, Position target) {
         if (source.equals(target)) {
             return true;
         }
