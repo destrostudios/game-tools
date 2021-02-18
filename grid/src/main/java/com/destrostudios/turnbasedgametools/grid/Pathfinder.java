@@ -20,7 +20,7 @@ public class Pathfinder {
      * @param start
      * @param end
      * @param heuristic
-     * @return path positions (start exclusive & end inclusive) if found
+     * @return list of path positions (start exclusive & end inclusive) if found
      */
     public Optional<List<Position>> findPath(Predicate<Position> isWalkable, Position start, Position end, Heuristic heuristic) {
         // https://www.redblobgames.com/pathfinding/a-star/implementation.html#python-astar
