@@ -93,6 +93,10 @@ public class GameClientModule<S, A> extends GameModule<S, A> {
         }
     }
 
+    public void removeJoinedGame(UUID gameId) {
+        games.remove(gameId);
+    }
+
     public ClientGameData<S, A> getJoinedGame(UUID id) {
         return games.get(id);
     }
