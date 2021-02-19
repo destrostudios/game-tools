@@ -70,4 +70,8 @@ public class LobbyServerModule<P> extends LobbyModule {
             connection.sendTCP(new UnlistGame(gameId));
         }
     }
+
+    public Map<UUID, P> getGames() {
+        return Map.copyOf(games);
+    }
 }
