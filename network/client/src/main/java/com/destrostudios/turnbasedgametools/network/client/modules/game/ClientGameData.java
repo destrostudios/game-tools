@@ -4,28 +4,44 @@ import com.destrostudios.turnbasedgametools.network.shared.modules.game.GameServ
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ClientGameData<S, A> {
 
-    private boolean desynced = false;
+    private static final Logger LOG = LoggerFactory.getLogger(ClientGameData.class);
+
     private final UUID id;
+    public int version;
     private final Queue<ActionReplay<A>> pendingActions = new ConcurrentLinkedQueue<>();
     private S state;
+    private boolean desynced = false;
 
-    public ClientGameData(UUID id, S state) {
+    public ClientGameData(UUID id, int version, S state) {
         this.id = id;
+        this.version = version;
         this.state = state;
     }
 
-    public void enqueueAction(A action, int[] randomHistory) {
-        pendingActions.offer(new ActionReplay<>(action, randomHistory));
+    public void enqueueAction(A action, int version, int[] randomHistory) {
+        pendingActions.offer(new ActionReplay<>(action, version, randomHistory));
     }
 
     public boolean applyNextAction(GameService<S, A> service) {
-        ActionReplay<A> actionReplay;
-        if ((actionReplay = pendingActions.poll()) != null) {
-            state = service.applyAction(state, actionReplay.action, new SlaveRandom(actionReplay.randomHistory));
-            return true;
+        try {
+            ActionReplay<A> actionReplay = pendingActions.poll();
+            if (actionReplay != null) {
+                if (actionReplay.version != version) {
+                    LOG.error("Action is: {}, remaining action queue: {}", actionReplay, pendingActions);
+                    throw new IllegalStateException("Action version mismatch, expected: " + version + ", actual: " + actionReplay.version + ".");
+                }
+                state = service.applyAction(state, actionReplay.action, new SlaveRandom(actionReplay.randomHistory));
+                version++;
+                return true;
+            }
+        } catch (Throwable t) {
+            desynced = true;
+            throw t;
         }
         return false;
     }
@@ -40,10 +56,6 @@ public class ClientGameData<S, A> {
 
     public boolean isDesynced() {
         return desynced;
-    }
-
-    public void setDesynced() {
-        this.desynced = true;
     }
 
 }
