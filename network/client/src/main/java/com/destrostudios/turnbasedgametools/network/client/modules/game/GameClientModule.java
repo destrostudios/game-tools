@@ -30,10 +30,10 @@ public class GameClientModule<S, A> extends GameModule<S, A> {
     public void received(Connection connection, Object object) {
         if (object instanceof GameJoin) {
             GameJoin message = (GameJoin) object;
-            onJoinGame(message.gameId, message.version, (S) message.state);
+            onJoinGame(message.gameId, (S) message.state);
         } else if (object instanceof GameAction) {
             GameAction message = (GameAction) object;
-            onAction(message.gameId, message.version, (A) message.action, message.randomHistory);
+            onAction(message.gameId, (A) message.action, message.randomHistory);
         }
     }
 
@@ -42,13 +42,13 @@ public class GameClientModule<S, A> extends GameModule<S, A> {
         games.clear();
     }
 
-    private void onJoinGame(UUID gameId, int version, S gameState) {
-        games.put(gameId, new ClientGameData<>(gameId, version, gameState));
+    private void onJoinGame(UUID gameId, S gameState) {
+        games.put(gameId, new ClientGameData<>(gameId, gameState));
     }
 
-    private void onAction(UUID gameId, int version, A action, int[] randomHistory) {
+    private void onAction(UUID gameId, A action, int[] randomHistory) {
         ClientGameData<S, A> game = games.get(gameId);
-        game.enqueueAction(action, version, randomHistory);
+        game.offerAction(action, randomHistory);
     }
 
     public void sendAction(UUID gameId, Object action) {

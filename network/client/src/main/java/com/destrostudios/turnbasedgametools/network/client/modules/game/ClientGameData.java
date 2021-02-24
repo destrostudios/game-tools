@@ -12,38 +12,35 @@ public class ClientGameData<S, A> {
     private static final Logger LOG = LoggerFactory.getLogger(ClientGameData.class);
 
     private final UUID id;
-    public int version;
     private final Queue<ActionReplay<A>> pendingActions = new ConcurrentLinkedQueue<>();
     private S state;
     private boolean desynced = false;
 
-    public ClientGameData(UUID id, int version, S state) {
+    public ClientGameData(UUID id, S state) {
         this.id = id;
-        this.version = version;
         this.state = state;
     }
 
-    public void enqueueAction(A action, int version, int[] randomHistory) {
-        pendingActions.offer(new ActionReplay<>(action, version, randomHistory));
+    public void offerAction(A action, int[] randomHistory) {
+        pendingActions.offer(new ActionReplay<>(action, randomHistory));
+    }
+
+    public ActionReplay<A> pollAction() {
+        return pendingActions.poll();
     }
 
     public boolean applyNextAction(GameService<S, A> service) {
         try {
-            ActionReplay<A> actionReplay = pendingActions.poll();
+            ActionReplay<A> actionReplay = pollAction();
             if (actionReplay != null) {
-                if (actionReplay.version != version) {
-                    LOG.error("Action is: {}, remaining action queue: {}", actionReplay, pendingActions);
-                    throw new IllegalStateException("Action version mismatch, expected: " + version + ", actual: " + actionReplay.version + ".");
-                }
                 state = service.applyAction(state, actionReplay.action, new SlaveRandom(actionReplay.randomHistory));
-                version++;
                 return true;
             }
+            return false;
         } catch (Throwable t) {
             desynced = true;
             throw t;
         }
-        return false;
     }
 
     public S getState() {

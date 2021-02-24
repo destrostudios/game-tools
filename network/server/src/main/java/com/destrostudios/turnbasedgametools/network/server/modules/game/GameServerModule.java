@@ -59,7 +59,7 @@ public class GameServerModule<S, A> extends GameModule<S, A> {
     public void join(Connection connection, UUID gameId) {
         ServerGameData<S> game = games.get(gameId);
         game.addConnection(connection.getID());
-        connection.sendTCP(new GameJoin(game.id, game.version, game.state));
+        connection.sendTCP(new GameJoin(game.id, game.state));
     }
 
     public void applyAction(UUID gameId, A action) {
@@ -73,7 +73,6 @@ public class GameServerModule<S, A> extends GameModule<S, A> {
             kryo.writeObject(output, game.state);
             output.flush();
         }
-        int previousVersion = game.version;
         try {
             game.state = gameService.applyAction(game.state, action, random);
         } catch (Throwable t) {
@@ -83,12 +82,11 @@ public class GameServerModule<S, A> extends GameModule<S, A> {
             }
             throw t;
         }
-        game.version++;
         int[] randomHistory = random.getHistory();
 
         for (Connection other : connectionsSupply.get()) {
             if (game.hasConnection(other.getID())) {
-                other.sendTCP(new GameAction(game.id, previousVersion, action, randomHistory));
+                other.sendTCP(new GameAction(game.id, action, randomHistory));
             }
         }
     }

@@ -7,7 +7,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 public class ServerGameData<S> {
     public final UUID id;
-    public int version;
     private final Set<Integer> connections = new CopyOnWriteArraySet<>();
     public S state;
     public final Random random;
