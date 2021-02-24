@@ -12,7 +12,11 @@ public class Pathfinder {
 
 
     public Optional<List<Position>> findPath(Predicate<Position> isWalkable, Position start, Position end) {
-        return findPath(isWalkable, start, end, new ManhattanHeuristic());
+        return findPath(isWalkable, start, end, Integer.MAX_VALUE);
+    }
+
+    public Optional<List<Position>> findPath(Predicate<Position> isWalkable, Position start, Position end, int maxCost) {
+        return findPath(isWalkable, start, end, new ManhattanHeuristic(), maxCost);
     }
 
     /**
@@ -20,9 +24,10 @@ public class Pathfinder {
      * @param start
      * @param end
      * @param heuristic
-     * @return list of path positions (start exclusive & end inclusive) if found
+     * @param maxCost    upper bound of maximal path length
+     * @return list of path positions (start exclusive) if found
      */
-    public Optional<List<Position>> findPath(Predicate<Position> isWalkable, Position start, Position end, Heuristic heuristic) {
+    public Optional<List<Position>> findPath(Predicate<Position> isWalkable, Position start, Position end, Heuristic heuristic, int maxCost) {
         // https://www.redblobgames.com/pathfinding/a-star/implementation.html#python-astar
 
         PriorityQueue<PriorityItem<Position, Integer>> frontier = new PriorityQueue<>();
@@ -45,16 +50,18 @@ public class Pathfinder {
                 return Optional.of(path);
             }
 
-            for (Position next : neighbors(current)) {
-                if (!isWalkable.test(next)) {
-                    continue;
-                }
-                int new_cost = cost_so_far.get(current) + 1;
-                if (!cost_so_far.containsKey(next) || new_cost < cost_so_far.get(next)) {
-                    cost_so_far.put(next, new_cost);
-                    int priority = new_cost + heuristic.estimateCost(next, end);
-                    frontier.add(new PriorityItem<>(next, priority));
-                    came_from.put(next, current);
+            int new_cost = cost_so_far.get(current) + 1;
+            if (new_cost <= maxCost) {
+                for (Position next : neighbors(current)) {
+                    if (!isWalkable.test(next)) {
+                        continue;
+                    }
+                    if (!cost_so_far.containsKey(next) || new_cost < cost_so_far.get(next)) {
+                        cost_so_far.put(next, new_cost);
+                        int priority = new_cost + heuristic.estimateCost(next, end);
+                        frontier.add(new PriorityItem<>(next, priority));
+                        came_from.put(next, current);
+                    }
                 }
             }
         }

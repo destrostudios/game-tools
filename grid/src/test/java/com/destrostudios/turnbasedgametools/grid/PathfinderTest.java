@@ -58,4 +58,18 @@ public class PathfinderTest {
         Optional<List<Position>> path = pathfinder.findPath(grid::isWalkable, new Position(0, 0), new Position(2, 0));
         assertFalse(path.isPresent());
     }
+
+    @Test
+    public void startIsDestination() {
+        Position position = new Position(0, 0);
+        Optional<List<Position>> path = pathfinder.findPath(p -> false, position, position);
+        assertTrue(path.isPresent());
+        assertTrue(path.get().isEmpty());
+    }
+
+    @Test
+    public void pathToLong() {
+        Optional<List<Position>> path = pathfinder.findPath(p -> true, new Position(0, 0), new Position(100, 0), 50);
+        assertFalse(path.isPresent());
+    }
 }
