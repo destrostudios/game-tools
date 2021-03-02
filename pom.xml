@@ -11,6 +11,7 @@
     <modules>
         <module>network</module>
         <module>grid</module>
+        <module>bot</module>
     </modules>
 
     <properties>

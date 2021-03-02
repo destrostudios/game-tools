@@ -40,14 +40,8 @@ public class Pathfinder {
         while (!frontier.isEmpty()) {
             Position current = frontier.poll().item;
             if (current.equals(end)) {
-                // path found, collect positions
-                List<Position> path = new LinkedList<>();
-                Position step = end;
-                while (came_from.containsKey(step)) {
-                    path.add(0, step);
-                    step = came_from.get(step);
-                }
-                return Optional.of(path);
+                // path found
+                return Optional.of(collectPath(end, came_from));
             }
 
             int new_cost = cost_so_far.get(current) + 1;
@@ -66,6 +60,16 @@ public class Pathfinder {
             }
         }
         return Optional.empty();
+    }
+
+    private List<Position> collectPath(Position end, Map<Position, Position> came_from) {
+        List<Position> path = new LinkedList<>();
+        Position step = end;
+        while (came_from.containsKey(step)) {
+            path.add(0, step);
+            step = came_from.get(step);
+        }
+        return path;
     }
 
     private Position[] neighbors(Position source) {
