@@ -21,11 +21,11 @@ public class ClientGameData<S, A> {
         this.state = state;
     }
 
-    public void offerAction(A action, int[] randomHistory) {
+    void offerAction(A action, int[] randomHistory) {
         pendingActions.offer(new ActionReplay<>(action, randomHistory));
     }
 
-    public ActionReplay<A> pollAction() {
+    ActionReplay<A> pollAction() {
         return pendingActions.poll();
     }
 
@@ -33,7 +33,7 @@ public class ClientGameData<S, A> {
         try {
             ActionReplay<A> actionReplay = pollAction();
             if (actionReplay != null) {
-                state = service.applyAction(state, actionReplay.action, new SlaveRandom(actionReplay.randomHistory));
+                applyAction(service, actionReplay.action, actionReplay.randomHistory);
                 return true;
             }
             return false;
@@ -41,6 +41,10 @@ public class ClientGameData<S, A> {
             desynced = true;
             throw t;
         }
+    }
+
+    private void applyAction(GameService<S, A> service, A action, int[] randomHistory) {
+        state = service.applyAction(state, action, new SlaveRandom(randomHistory));
     }
 
     public S getState() {
