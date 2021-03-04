@@ -10,8 +10,6 @@ public interface BotGameState<A, T> {
 
     List<A> generateActions(T team);
 
-    List<BotActionReplay<A>> getHistory();
-
     boolean isGameOver();
 
     List<T> getTeams();// immutable

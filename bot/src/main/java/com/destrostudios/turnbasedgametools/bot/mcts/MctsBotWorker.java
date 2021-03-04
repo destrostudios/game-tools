@@ -19,6 +19,7 @@ class MctsBotWorker<S extends BotGameState<A, T>, A, T, D> {
     private static final Logger LOG = LoggerFactory.getLogger(MctsBotWorker.class);
 
     private static final float EPSILON = 1e-6f;
+
     private final BotGameService<S, A, T, D> service;
     private final float uctConstant;
     private final float firstPlayUrgency;
@@ -30,7 +31,7 @@ class MctsBotWorker<S extends BotGameState<A, T>, A, T, D> {
     private final MctsNode<BotActionReplay<A>> rootNode;
     private final MctsRaveScores raveScores;
 
-    private S simulationGame;// use method variables/parameters instead
+    private S simulationGame;
 
     public MctsBotWorker(BotGameService<S, A, T, D> service, D sourceGame, MctsBotSettings<S, A> settings, int teamCount, MctsNode<BotActionReplay<A>> rootNode, MctsRaveScores raveScores) {
         this.service = service;
@@ -123,10 +124,11 @@ class MctsBotWorker<S extends BotGameState<A, T>, A, T, D> {
         if (moves.size() == 1) {
             return moves.get(0);
         }
+        int moveTeamIndex = simulationGame.getTeams().indexOf(team);
+
         List<A> bestMoves = new ArrayList<>();
         float bestValue = Float.NEGATIVE_INFINITY;
         for (A move : moves) {
-            int moveTeamIndex = simulationGame.getTeams().indexOf(team);
             float score;
             List<MctsNode<BotActionReplay<A>>> childs = getChilds(node, move);
             if (childs.isEmpty()) {

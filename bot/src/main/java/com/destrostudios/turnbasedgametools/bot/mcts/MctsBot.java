@@ -12,7 +12,7 @@ import java.util.function.BooleanSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MctsBot<S extends BotGameState<A, T>, A, T, D> implements Bot<A, T> {
+public class MctsBot<S extends BotGameState<A, T>, A, T, D> implements Bot<S, A, T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MctsBot.class);
 
@@ -20,44 +20,46 @@ public class MctsBot<S extends BotGameState<A, T>, A, T, D> implements Bot<A, T>
 
     private final BotGameService<S, A, T, D> gameService;
     private final MctsBotSettings<S, A> settings;
-    private final S sourceGame;
 
     private MctsNode<BotActionReplay<A>> rootNode;
-    private int rootNodeHistoryPointer = 0;
+    private boolean rootOutdated = false;
 
-    public MctsBot(BotGameService<S, A, T, D> gameService, S sourceGame, MctsBotSettings<S, A> settings) {
+    public MctsBot(BotGameService<S, A, T, D> gameService, MctsBotSettings<S, A> settings) {
         this.gameService = gameService;
         this.settings = settings;
-        this.sourceGame = sourceGame;
+    }
+
+    public void stepRoot(BotActionReplay<A> action) {
+        rootNode = getChild(rootNode, action);
+        rootOutdated = false;
+    }
+
+    public void clearRoot(BotActionReplay<A> action) {
+        rootNode = null;
+        rootOutdated = false;
     }
 
     @Override
-    public List<A> sortedActions(T team) {
-        assert !sourceGame.isGameOver();
-        if (sourceGame.getHistory() == null) {
-            rootNode = null;
-        } else {
-            while (rootNodeHistoryPointer < sourceGame.getHistory().size()) {
-                BotActionReplay<A> move = sourceGame.getHistory().get(rootNodeHistoryPointer);
-                if (rootNode != null) {
-                    rootNode = getChild(rootNode, move);
-                }
-                rootNodeHistoryPointer++;
-            }
+    public List<A> sortedActions(S state, T team) {
+        assert !state.isGameOver();
+        if (rootOutdated) {
+            throw new IllegalStateException("Call clearRoot or stepRoot between searches.");
         }
+        rootOutdated = true;
+        int teamCount = state.getTeams().size();
         if (rootNode == null) {
-            rootNode = createNode();
+            rootNode = createNode(teamCount);
         }
 
-        List<A> moves = new ArrayList<>(sourceGame.generateActions(sourceGame.activeTeam()));
+        List<A> moves = new ArrayList<>(state.generateActions(state.activeTeam()));
         if (moves.size() > 1) {
-            MctsRaveScores raveScores = initRaveScores();
+            MctsRaveScores raveScores = initRaveScores(teamCount);
 
-            D data = gameService.serialize(sourceGame);
+            D data = gameService.serialize(state);
 
             List<MctsBotWorker> workers = new ArrayList<>();
             for (int i = 0; i < settings.maxThreads; i++) {
-                workers.add(new MctsBotWorker(gameService, data, settings, teamCount(), rootNode, raveScores));
+                workers.add(new MctsBotWorker(gameService, data, settings, teamCount, rootNode, raveScores));
             }
             BooleanSupplier isActive;
             int strength = settings.strength;
@@ -93,7 +95,7 @@ public class MctsBot<S extends BotGameState<A, T>, A, T, D> implements Bot<A, T>
                     nodes = nextNodes;
                 }
                 LOG.info("Tree dimensions: {} - {}", branching.size(), branching.toArray());
-                int moveTeamIndex = sourceGame.getTeams().indexOf(team);
+                int moveTeamIndex = state.getTeams().indexOf(team);
                 LOG.info("Expected win-rate: {}%", Math.round(100 * rootNode.score(moveTeamIndex) / rootNode.visits()));
             }
         }
@@ -123,9 +125,9 @@ public class MctsBot<S extends BotGameState<A, T>, A, T, D> implements Bot<A, T>
 //        return child.visits();
     }
 
-    private MctsRaveScores initRaveScores() {
-        MctsRaveScores raveScores = new MctsRaveScores(teamCount());
-        raveScores.getDefaultScore().updateScores(1f / teamCount());
+    private MctsRaveScores initRaveScores(int teamCount) {
+        MctsRaveScores raveScores = new MctsRaveScores(teamCount);
+        raveScores.getDefaultScore().updateScores(1f / teamCount);
         initRaveScores(raveScores, rootNode);
         return raveScores;
     }
@@ -145,15 +147,7 @@ public class MctsBot<S extends BotGameState<A, T>, A, T, D> implements Bot<A, T>
         return node.getChildOrDefault(move, null);
     }
 
-    private MctsNode<BotActionReplay<A>> createNode() {
-        return new MctsNode<>(teamCount());
-    }
-
-    private int teamCount() {
-        return sourceGame.getTeams().size();
-    }
-
-    public S getSourceGame() {
-        return sourceGame;
+    private MctsNode<BotActionReplay<A>> createNode(int teamCount) {
+        return new MctsNode<>(teamCount);
     }
 }
