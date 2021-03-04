@@ -34,7 +34,7 @@ public class MctsBot<S extends BotGameState<A, T>, A, T, D> implements Bot<S, A,
         rootOutdated = false;
     }
 
-    public void clearRoot(BotActionReplay<A> action) {
+    public void clearRoot() {
         rootNode = null;
         rootOutdated = false;
     }
