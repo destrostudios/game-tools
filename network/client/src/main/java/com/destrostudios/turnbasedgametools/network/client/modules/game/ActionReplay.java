@@ -2,7 +2,7 @@ package com.destrostudios.turnbasedgametools.network.client.modules.game;
 
 import java.util.Arrays;
 
-class ActionReplay<A> {
+public class ActionReplay<A> {
     public final A action;
     public final int[] randomHistory;
 
