@@ -5,6 +5,7 @@ import com.destrostudios.turnbasedgametools.bot.BotActionReplay;
 import com.destrostudios.turnbasedgametools.bot.BotGameService;
 import com.destrostudios.turnbasedgametools.bot.BotGameState;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -76,24 +77,25 @@ public class MctsBot<S extends BotGameState<A, T>, A, T, D> implements Bot<A, T>
 
             MctsNode<BotActionReplay<A>> node = rootNode;
             moves.sort(Comparator.comparingDouble(move -> -visits(node, move)));
-//            if (settings.verbose) {
-//                LOG.info("Move scores:");
-//                for (A move : moves) {
-//                    LOG.info("{}: {}", Math.round(visits(node, move)), sourceGame.toMoveString(move));
-//                }
-//                IntList branching = new IntList();
-//                List<MctsNode<A>> nodes = Collections.singletonList(rootNode);
-//                while (!nodes.isEmpty()) {
-//                    branching.add(nodes.size());
-//                    List<MctsNode<A>> nextNodes = new ArrayList<>();
-//                    for (MctsNode<A> n : nodes) {
-//                        nextNodes.addAll(n.getChilds());
-//                    }
-//                    nodes = nextNodes;
-//                }
-//                LOG.info("Tree dimensions: {} - {}", branching.size(), branching.toArray());
-//                LOG.info("Expected win-rate: {}%", Math.round(100 * rootNode.score(playerIndex) / rootNode.visits()));
-//            }
+            if (settings.verbose) {
+                LOG.info("Move scores:");
+                for (A move : moves) {
+                    LOG.info("{}: {}", Math.round(visits(node, move)), move);
+                }
+                List<Integer> branching = new ArrayList<>();
+                List<MctsNode<BotActionReplay<A>>> nodes = Collections.singletonList(rootNode);
+                while (!nodes.isEmpty()) {
+                    branching.add(nodes.size());
+                    List<MctsNode<BotActionReplay<A>>> nextNodes = new ArrayList<>();
+                    for (MctsNode<BotActionReplay<A>> n : nodes) {
+                        nextNodes.addAll(n.getChilds());
+                    }
+                    nodes = nextNodes;
+                }
+                LOG.info("Tree dimensions: {} - {}", branching.size(), branching.toArray());
+                int moveTeamIndex = sourceGame.getTeams().indexOf(team);
+                LOG.info("Expected win-rate: {}%", Math.round(100 * rootNode.score(moveTeamIndex) / rootNode.visits()));
+            }
         }
         return moves;
 //        A selected = moves.get(0);
