@@ -3,7 +3,6 @@ package com.destrostudios.turnbasedgametools.bot.mcts;
 import com.destrostudios.turnbasedgametools.bot.BotActionReplay;
 import com.destrostudios.turnbasedgametools.bot.BotGameService;
 import com.destrostudios.turnbasedgametools.bot.BotGameState;
-import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
@@ -15,25 +14,25 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class MctsBotWorker<S extends BotGameState<A, T>, A, T> {
+class MctsBotWorker<S extends BotGameState<A, T>, A, T, D> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MctsBotWorker.class);
 
     private static final float EPSILON = 1e-6f;
-    private final BotGameService<S, A, T> service;
+    private final BotGameService<S, A, T, D> service;
     private final float uctConstant;
     private final float firstPlayUrgency;
     private final Function<S, float[]> evaluation;
     private final Random random;
     private final float raveMultiplier;
-    private final byte[] sourceGame;
+    private final D sourceGame;
     private final int teamCount;
     private final MctsNode<BotActionReplay<A>> rootNode;
     private final MctsRaveScores raveScores;
 
     private S simulationGame;// use method variables/parameters instead
 
-    public MctsBotWorker(BotGameService<S, A, T> service, byte[] sourceGame, MctsBotSettings<S, A> settings, int teamCount, MctsNode<BotActionReplay<A>> rootNode, MctsRaveScores raveScores) {
+    public MctsBotWorker(BotGameService<S, A, T, D> service, D sourceGame, MctsBotSettings<S, A> settings, int teamCount, MctsNode<BotActionReplay<A>> rootNode, MctsRaveScores raveScores) {
         this.service = service;
         this.sourceGame = sourceGame;
         this.random = settings.random;
@@ -50,12 +49,7 @@ class MctsBotWorker<S extends BotGameState<A, T>, A, T> {
         LOG.debug("worker started.");
         int iterations = 0;
         while (isActive.getAsBoolean()) {
-            ByteArrayInputStream in = new ByteArrayInputStream(sourceGame);
-            simulationGame = service.deserialize(in);
-//            // randomize opponents hand cards
-//            // TODO: use a priori knowledge for better approximation of real hand cards
-//            // TODO: the simulated opponent also only 'knows' our hand...
-//            simulationGame.randomizeHiddenInformation(random, botPlayerIndex);
+            simulationGame = service.deserialize(sourceGame);
             iteration(rootNode, raveScores);
             iterations++;
             if (Thread.interrupted()) {
@@ -109,7 +103,6 @@ class MctsBotWorker<S extends BotGameState<A, T>, A, T> {
                 return null;
             }
             selectedMove = uctSelect(nodePath.getLast(), raveScores);
-
         }
 //        while ((node = getChild(node, selectedMove)) != null) {
 //            nodePath.add(node);
@@ -125,20 +118,6 @@ class MctsBotWorker<S extends BotGameState<A, T>, A, T> {
 
     private A uctSelect(MctsNode<BotActionReplay<A>> node, MctsRaveScores raveScores) {
         T team = simulationGame.activeTeam();
-//        int activePlayerIndex = -1;
-//        if (simulationGame.isPlayerIndexActive(botPlayerIndex)) {
-//            activePlayerIndex = botPlayerIndex;
-//        } else {
-//            for (int playerIndex = 0; playerIndex < playerCount; playerIndex++) {
-//                if (simulationGame.isPlayerIndexActive(playerIndex)) {
-//                    activePlayerIndex = playerIndex;
-//                    break;
-//                }
-//            }
-//        }
-//        assert activePlayerIndex >= 0 : "there is no active player";
-//        //TODO: generate moves for all active players instead, WARNING: might need special handling in root since we only want own moves there
-//        List<A> moves = simulationGame.generateMoves(activePlayerIndex);
         List<A> moves = simulationGame.generateActions(team);
 
         if (moves.size() == 1) {

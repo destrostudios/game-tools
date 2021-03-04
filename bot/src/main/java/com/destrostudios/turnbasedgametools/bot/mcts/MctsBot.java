@@ -4,8 +4,6 @@ import com.destrostudios.turnbasedgametools.bot.Bot;
 import com.destrostudios.turnbasedgametools.bot.BotActionReplay;
 import com.destrostudios.turnbasedgametools.bot.BotGameService;
 import com.destrostudios.turnbasedgametools.bot.BotGameState;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -13,20 +11,20 @@ import java.util.function.BooleanSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MctsBot<S extends BotGameState<A, T>, A, T> implements Bot<A, T> {
+public class MctsBot<S extends BotGameState<A, T>, A, T, D> implements Bot<A, T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MctsBot.class);
 
     private static final int MILLI_TO_NANO = 1_000_000;
 
-    private final BotGameService<S, A, T> gameService;
+    private final BotGameService<S, A, T, D> gameService;
     private final MctsBotSettings<S, A> settings;
     private final S sourceGame;
 
     private MctsNode<BotActionReplay<A>> rootNode;
     private int rootNodeHistoryPointer = 0;
 
-    public MctsBot(BotGameService<S, A, T> gameService, S sourceGame, MctsBotSettings<S, A> settings) {
+    public MctsBot(BotGameService<S, A, T, D> gameService, S sourceGame, MctsBotSettings<S, A> settings) {
         this.gameService = gameService;
         this.settings = settings;
         this.sourceGame = sourceGame;
@@ -54,17 +52,11 @@ public class MctsBot<S extends BotGameState<A, T>, A, T> implements Bot<A, T> {
         if (moves.size() > 1) {
             MctsRaveScores raveScores = initRaveScores();
 
-            byte[] bytes;
-            try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
-                gameService.serialize(sourceGame, stream);
-                bytes = stream.toByteArray();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            D data = gameService.serialize(sourceGame);
 
             List<MctsBotWorker> workers = new ArrayList<>();
             for (int i = 0; i < settings.maxThreads; i++) {
-                workers.add(new MctsBotWorker(gameService, bytes, settings, teamCount(), rootNode, raveScores));
+                workers.add(new MctsBotWorker(gameService, data, settings, teamCount(), rootNode, raveScores));
             }
             BooleanSupplier isActive;
             int strength = settings.strength;
