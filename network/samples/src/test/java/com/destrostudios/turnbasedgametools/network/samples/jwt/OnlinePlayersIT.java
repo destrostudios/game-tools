@@ -18,7 +18,6 @@ import com.destrostudios.turnbasedgametools.network.shared.modules.ping.messages
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Server;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -96,7 +95,7 @@ public class OnlinePlayersIT {
         blockModule1.takeUntil(UserLogin.class);
         blockModule1.takeUntil(UserLogin.class);
 
-        List<JwtAuthenticationUser> expected = Arrays.asList(user0, user1);
+        List<JwtAuthenticationUser> expected = List.of(user0, user1);
 
         assertEquals(expected, jwtModule0.getOnlineUsers());
         assertEquals(expected, jwtModule1.getOnlineUsers());
@@ -137,7 +136,7 @@ public class OnlinePlayersIT {
         blockModule2.takeUntil(UserLogin.class);
         blockModule2.takeUntil(UserLogin.class);
 
-        List<JwtAuthenticationUser> expected = Arrays.asList(user0, user1);
+        List<JwtAuthenticationUser> expected = List.of(user0, user1);
 
         assertEquals(expected, jwtModule0.getOnlineUsers());
         assertEquals(expected, jwtModule1.getOnlineUsers());
@@ -176,7 +175,7 @@ public class OnlinePlayersIT {
         blockModule1.takeUntil(UserLogin.class);
         blockModule1.takeUntil(UserLogin.class);
 
-        List<JwtAuthenticationUser> expected = Arrays.asList(user0, user1);
+        List<JwtAuthenticationUser> expected = List.of(user0, user1);
 
         assertEquals(expected, jwtModule0.getOnlineUsers());
         assertEquals(expected, jwtModule1.getOnlineUsers());

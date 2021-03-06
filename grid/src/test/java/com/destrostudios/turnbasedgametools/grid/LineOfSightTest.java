@@ -1,6 +1,5 @@
 package com.destrostudios.turnbasedgametools.grid;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import org.junit.Test;
@@ -62,7 +61,7 @@ public class LineOfSightTest {
     @Test
     public void unblockedAccrossOrigin() {
         for (int i = 0; i < 8; i++) {
-            List<Position> traversedPositions = Arrays.asList(
+            List<Position> traversedPositions = List.of(
                     permutate(-1, 1, i),
                     permutate(-1, 0, i),
                     permutate(0, 0, i),
@@ -83,7 +82,7 @@ public class LineOfSightTest {
     @Test
     public void blockedAccrossOrigin() {
         for (int i = 0; i < 8; i++) {
-            List<Position> traversedPositions = Arrays.asList(
+            List<Position> traversedPositions = List.of(
                     permutate(-1, -1, i),
                     permutate(-1, 0, i),
                     permutate(0, 0, i),

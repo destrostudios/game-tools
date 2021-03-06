@@ -1,6 +1,5 @@
 package com.destrostudios.turnbasedgametools.grid;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.junit.Test;
@@ -38,7 +37,7 @@ public class PathfinderTest {
 
         Optional<List<Position>> path = pathfinder.findPath(grid::isWalkable, new Position(2, 1), new Position(2, 6));
         assertTrue(path.isPresent());
-        assertEquals(Arrays.asList(
+        assertEquals(List.of(
                 new Position(1, 1),
                 new Position(0, 1),
                 new Position(0, 2),
