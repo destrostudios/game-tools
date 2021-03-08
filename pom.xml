@@ -23,7 +23,7 @@
         <version.slf4j>2.0.0-alpha1</version.slf4j>
         <version.junit>4.11</version.junit>
         <version.mockito>1.9.5</version.mockito>
-        <version.auth-token>093f998a7a12100a2136c0e7182a2a1ae9897f8b</version.auth-token>
+        <version.auth-token>c7a6c8b4b9d79dac73aec617de4225e17c010405</version.auth-token>
     </properties>
     <repositories>
         <repository>
@@ -91,7 +91,6 @@
             <version>${version.mockito}</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
 </project>
