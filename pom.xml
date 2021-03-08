@@ -76,7 +76,6 @@
             <artifactId>slf4j-api</artifactId>
             <version>${version.slf4j}</version>
         </dependency>
-
         <!--JUnit-->
         <dependency>
             <groupId>junit</groupId>
@@ -92,5 +91,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
 </project>

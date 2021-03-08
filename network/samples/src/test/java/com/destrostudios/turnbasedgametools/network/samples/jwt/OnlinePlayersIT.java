@@ -29,6 +29,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class OnlinePlayersIT {
+
     private ToolsServer server;
     private ToolsClient[] clients;
 
@@ -63,9 +64,7 @@ public class OnlinePlayersIT {
     public void alone() throws InterruptedException {
         BlockingMessageModule blockModule0 = clients[0].getModule(BlockingMessageModule.class);
         JwtClientModule jwtModule0 = clients[0].getModule(JwtClientModule.class);
-        JwtAuthenticationUser user0 = new JwtAuthenticationUser();
-        user0.id = 178;
-        user0.login = "TestName";
+        JwtAuthenticationUser user0 = new JwtAuthenticationUser(178, "TestName");
 
         jwtModule0.login(createJwt(user0));
         UserLogin userLogin = blockModule0.takeUntil(UserLogin.class);
@@ -77,15 +76,11 @@ public class OnlinePlayersIT {
     public void two() throws InterruptedException {
         BlockingMessageModule blockModule0 = clients[0].getModule(BlockingMessageModule.class);
         JwtClientModule jwtModule0 = clients[0].getModule(JwtClientModule.class);
-        JwtAuthenticationUser user0 = new JwtAuthenticationUser();
-        user0.id = 178;
-        user0.login = "TestName";
+        JwtAuthenticationUser user0 = new JwtAuthenticationUser(178, "TestName");
 
         BlockingMessageModule blockModule1 = clients[1].getModule(BlockingMessageModule.class);
         JwtClientModule jwtModule1 = clients[1].getModule(JwtClientModule.class);
-        JwtAuthenticationUser user1 = new JwtAuthenticationUser();
-        user1.id = 5425;
-        user1.login = "Frank";
+        JwtAuthenticationUser user1 = new JwtAuthenticationUser(5425, "Frank");
 
         jwtModule0.login(createJwt(user0));
         jwtModule1.login(createJwt(user1));
@@ -111,15 +106,11 @@ public class OnlinePlayersIT {
     public void multiConnect() throws InterruptedException {
         BlockingMessageModule blockModule0 = clients[0].getModule(BlockingMessageModule.class);
         JwtClientModule jwtModule0 = clients[0].getModule(JwtClientModule.class);
-        JwtAuthenticationUser user0 = new JwtAuthenticationUser();
-        user0.id = 178;
-        user0.login = "TestName";
+        JwtAuthenticationUser user0 = new JwtAuthenticationUser(178, "TestName");
 
         BlockingMessageModule blockModule1 = clients[1].getModule(BlockingMessageModule.class);
         JwtClientModule jwtModule1 = clients[1].getModule(JwtClientModule.class);
-        JwtAuthenticationUser user1 = new JwtAuthenticationUser();
-        user1.id = 5425;
-        user1.login = "Frank";
+        JwtAuthenticationUser user1 = new JwtAuthenticationUser(5425, "Frank");
 
         BlockingMessageModule blockModule2 = clients[2].getModule(BlockingMessageModule.class);
         JwtClientModule jwtModule2 = clients[2].getModule(JwtClientModule.class);
@@ -157,15 +148,11 @@ public class OnlinePlayersIT {
     public void disconnect() throws InterruptedException {
         BlockingMessageModule blockModule0 = clients[0].getModule(BlockingMessageModule.class);
         JwtClientModule jwtModule0 = clients[0].getModule(JwtClientModule.class);
-        JwtAuthenticationUser user0 = new JwtAuthenticationUser();
-        user0.id = 178;
-        user0.login = "TestName";
+        JwtAuthenticationUser user0 = new JwtAuthenticationUser(178, "TestName");
 
         BlockingMessageModule blockModule1 = clients[1].getModule(BlockingMessageModule.class);
         JwtClientModule jwtModule1 = clients[1].getModule(JwtClientModule.class);
-        JwtAuthenticationUser user1 = new JwtAuthenticationUser();
-        user1.id = 5425;
-        user1.login = "Frank";
+        JwtAuthenticationUser user1 = new JwtAuthenticationUser(5425, "Frank");
 
         jwtModule0.login(createJwt(user0));
         jwtModule1.login(createJwt(user1));
