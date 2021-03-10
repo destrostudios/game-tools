@@ -67,7 +67,7 @@ public class PathfinderTest {
     }
 
     @Test
-    public void pathToLong() {
+    public void pathTooLong() {
         Optional<List<Position>> path = pathfinder.findPath(p -> true, new Position(0, 0), new Position(100, 0), 50);
         assertFalse(path.isPresent());
     }
