@@ -47,10 +47,11 @@ public class Pathfinder {
             int new_cost = cost_so_far.get(current) + 1;
             if (new_cost <= maxCost) {
                 for (Position next : neighbors(current)) {
-                    if (!isWalkable.test(next)) {
-                        continue;
-                    }
-                    if (!cost_so_far.containsKey(next) || new_cost < cost_so_far.get(next)) {
+                    Integer nextCost = cost_so_far.get(next);
+                    if (nextCost == null || new_cost < nextCost) {
+                        if (!isWalkable.test(next)) {
+                            continue;
+                        }
                         cost_so_far.put(next, new_cost);
                         int priority = new_cost + heuristic.estimateCost(next, end);
                         frontier.add(new PriorityItem<>(next, priority));
