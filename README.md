@@ -1,4 +1,4 @@
-# turn-based-game-tools
+# game-tools
 
 Utility libraries intended to simplify creating turn-based games.
 
