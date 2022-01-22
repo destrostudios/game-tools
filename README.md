@@ -1,5 +1,5 @@
 # game-tools
 
-Utility libraries intended to simplify creating turn-based games.
+Utility libraries intended to simplify creating games.
 
 Used in https://github.com/destrostudios/grid
