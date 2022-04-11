@@ -2,14 +2,6 @@ package com.destrostudios.gametools.network.shared.modules.game.messages;
 
 import java.util.UUID;
 
-public class UnlistGame {
+public record UnlistGame(UUID gameId) {
 
-    public UUID gameId;
-
-    UnlistGame() {
-    }
-
-    public UnlistGame(UUID gameId) {
-        this.gameId = gameId;
-    }
 }

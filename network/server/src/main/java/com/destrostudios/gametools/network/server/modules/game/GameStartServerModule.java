@@ -17,7 +17,7 @@ public abstract class GameStartServerModule<P> extends GameStartModule<P> {
     public void received(Connection connection, Object object) {
         if (object instanceof GameStartRequest) {
             GameStartRequest<P> message = (GameStartRequest<P>) object;
-            startGameRequest(connection, message.params);
+            startGameRequest(connection, message.params());
         }
     }
 

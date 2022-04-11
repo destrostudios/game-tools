@@ -2,13 +2,6 @@ package com.destrostudios.gametools.network.shared.modules.jwt.messages;
 
 import com.destrostudios.authtoken.JwtAuthenticationUser;
 
-public class UserLogin {
-    public JwtAuthenticationUser user;
+public record UserLogin(JwtAuthenticationUser user) {
 
-    UserLogin() {
-    }
-
-    public UserLogin(JwtAuthenticationUser user) {
-        this.user = user;
-    }
 }

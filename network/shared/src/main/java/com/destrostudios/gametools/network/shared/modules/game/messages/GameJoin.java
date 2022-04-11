@@ -2,16 +2,8 @@ package com.destrostudios.gametools.network.shared.modules.game.messages;
 
 import java.util.UUID;
 
-public class GameJoin {
+public record GameJoin(
+        UUID gameId,
+        Object state) {
 
-    public UUID gameId;
-    public Object state;
-
-    GameJoin() {
-    }
-
-    public GameJoin(UUID gameId, Object state) {
-        this.gameId = gameId;
-        this.state = state;
-    }
 }

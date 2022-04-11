@@ -1,4 +1,4 @@
 package com.destrostudios.gametools.network.shared.modules.game.messages;
 
-public class UnsubscribeGamesList {
+public record UnsubscribeGamesList() {
 }

@@ -33,9 +33,8 @@ public class JwtServerModule extends JwtModule {
 
     @Override
     public void received(Connection connection, Object object) {
-        if (object instanceof Login) {
-            Login message = (Login) object;
-            JwtAuthentication authentication = jwtService.decode(message.jwt);
+        if (object instanceof Login message) {
+            JwtAuthentication authentication = jwtService.decode(message.jwt());
 
             login(connection, authentication.user);
         } else if (object instanceof Logout) {

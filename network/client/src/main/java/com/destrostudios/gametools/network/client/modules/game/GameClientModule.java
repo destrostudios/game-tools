@@ -28,12 +28,10 @@ public class GameClientModule<S, A> extends GameModule<S, A> {
 
     @Override
     public void received(Connection connection, Object object) {
-        if (object instanceof GameJoin) {
-            GameJoin message = (GameJoin) object;
-            onJoinGame(message.gameId, (S) message.state);
-        } else if (object instanceof GameAction) {
-            GameAction message = (GameAction) object;
-            onAction(message.gameId, (A) message.action, message.randomHistory);
+        if (object instanceof GameJoin message) {
+            onJoinGame(message.gameId(), (S) message.state());
+        } else if (object instanceof GameAction message) {
+            onAction(message.gameId(), (A) message.action(), message.randomHistory());
         }
     }
 

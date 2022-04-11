@@ -1,13 +1,4 @@
 package com.destrostudios.gametools.network.shared.modules.game.messages;
 
-public class GameStartRequest<P> {
-
-    public P params;
-
-    GameStartRequest() {
-    }
-
-    public GameStartRequest(P params) {
-        this.params = params;
-    }
+public record GameStartRequest<P>(P params) {
 }

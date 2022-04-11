@@ -1,4 +1,4 @@
-package com.destrostudios.gametools.network.shared;
+package com.destrostudios.gametools.network.shared.serializers;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;

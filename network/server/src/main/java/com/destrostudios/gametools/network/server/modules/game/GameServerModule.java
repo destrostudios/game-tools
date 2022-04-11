@@ -39,12 +39,10 @@ public class GameServerModule<S, A> extends GameModule<S, A> {
 
     @Override
     public void received(Connection connection, Object object) {
-        if (object instanceof GameJoinRequest) {
-            GameJoinRequest message = (GameJoinRequest) object;
-            join(connection, message.gameId);
-        } else if (object instanceof GameActionRequest) {
-            GameActionRequest message = (GameActionRequest) object;
-            applyAction(message.game, (A) message.action);
+        if (object instanceof GameJoinRequest message) {
+            join(connection, message.gameId());
+        } else if (object instanceof GameActionRequest message) {
+            applyAction(message.game(), (A) message.action());
         }
     }
 

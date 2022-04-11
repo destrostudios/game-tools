@@ -26,10 +26,9 @@ public class LobbyClientModule<P> extends LobbyModule<P> {
     public void received(Connection connection, Object object) {
         if (object instanceof ListGame) {
             ListGame<P> message = (ListGame<P>) object;
-            listedGames.put(message.gameId, message.params);
-        } else if (object instanceof UnlistGame) {
-            UnlistGame message = (UnlistGame) object;
-            listedGames.remove(message.gameId);
+            listedGames.put(message.gameId(), message.params());
+        } else if (object instanceof UnlistGame message) {
+            listedGames.remove(message.gameId());
         }
     }
 

@@ -1,11 +1,12 @@
 package com.destrostudios.gametools.network.shared.modules.game;
 
+import com.destrostudios.gametools.network.shared.modules.NetworkModule;
 import com.destrostudios.gametools.network.shared.modules.game.messages.GameAction;
 import com.destrostudios.gametools.network.shared.modules.game.messages.GameActionRequest;
 import com.destrostudios.gametools.network.shared.modules.game.messages.GameJoin;
 import com.destrostudios.gametools.network.shared.modules.game.messages.GameJoinRequest;
-import com.destrostudios.gametools.network.shared.UuidSerializer;
-import com.destrostudios.gametools.network.shared.modules.NetworkModule;
+import com.destrostudios.gametools.network.shared.serializers.RecordSerializer;
+import com.destrostudios.gametools.network.shared.serializers.UuidSerializer;
 import com.esotericsoftware.kryo.Kryo;
 import java.util.UUID;
 
@@ -20,13 +21,11 @@ public abstract class GameModule<S, A> extends NetworkModule {
     @Override
     public void initialize(Kryo kryo) {
         kryo.register(UUID.class, new UuidSerializer());
-        kryo.register(int[].class);
-        kryo.register(Object[].class);
 
-        kryo.register(GameAction.class);
-        kryo.register(GameActionRequest.class);
-        kryo.register(GameJoin.class);
-        kryo.register(GameJoinRequest.class);
+        kryo.register(GameAction.class, new RecordSerializer<>());
+        kryo.register(GameActionRequest.class, new RecordSerializer<>());
+        kryo.register(GameJoin.class, new RecordSerializer<>());
+        kryo.register(GameJoinRequest.class, new RecordSerializer<>());
 
         gameService.initialize(kryo);
     }

@@ -33,12 +33,10 @@ public class JwtClientModule extends JwtModule {
 
     @Override
     public void received(Connection connection, Object object) {
-        if (object instanceof UserLogin) {
-            UserLogin message = (UserLogin) object;
-            users.add(message.user);
-        } else if (object instanceof UserLogout) {
-            UserLogout message = (UserLogout) object;
-            users.remove(message.user);
+        if (object instanceof UserLogin message) {
+            users.add(message.user());
+        } else if (object instanceof UserLogout message) {
+            users.remove(message.user());
         }
     }
 

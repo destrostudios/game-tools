@@ -4,17 +4,17 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.destrostudios.authtoken.JwtAuthenticationUser;
 import com.destrostudios.authtoken.NoValidateJwtService;
-import com.destrostudios.gametools.network.server.ToolsServer;
-import com.destrostudios.gametools.network.server.modules.jwt.JwtServerModule;
-import com.destrostudios.gametools.network.shared.modules.ping.PingModule;
-import com.destrostudios.gametools.network.shared.modules.ping.messages.Ping;
-import com.destrostudios.gametools.network.shared.modules.ping.messages.Pong;
 import com.destrostudios.gametools.network.BlockingMessageModule;
 import com.destrostudios.gametools.network.client.ToolsClient;
 import com.destrostudios.gametools.network.client.modules.jwt.JwtClientModule;
+import com.destrostudios.gametools.network.server.ToolsServer;
+import com.destrostudios.gametools.network.server.modules.jwt.JwtServerModule;
 import com.destrostudios.gametools.network.shared.NetworkUtil;
 import com.destrostudios.gametools.network.shared.modules.jwt.messages.UserLogin;
 import com.destrostudios.gametools.network.shared.modules.jwt.messages.UserLogout;
+import com.destrostudios.gametools.network.shared.modules.ping.PingModule;
+import com.destrostudios.gametools.network.shared.modules.ping.messages.Ping;
+import com.destrostudios.gametools.network.shared.modules.ping.messages.Pong;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Server;
 import java.io.IOException;
@@ -68,7 +68,7 @@ public class OnlinePlayersIT {
 
         jwtModule0.login(createJwt(user0));
         UserLogin userLogin = blockModule0.takeUntil(UserLogin.class);
-        assertEquals(user0, userLogin.user);
+        assertEquals(user0, userLogin.user());
         assertEquals(Collections.singletonList(user0), jwtModule0.getOnlineUsers());
     }
 
