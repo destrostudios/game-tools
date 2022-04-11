@@ -1,15 +1,15 @@
 package com.destrostudios.gametools.network.shared.serializers;
 
 import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.RecordComponent;
 import java.util.stream.Stream;
 
-public class RecordSerializer<T extends Record> extends Serializer<T> {
+public class RecordSerializer<T extends Record> extends CopySerializer<T> {
 
     @Override
     public void write(Kryo kryo, Output output, T object) {
@@ -21,6 +21,8 @@ public class RecordSerializer<T extends Record> extends Serializer<T> {
                 Object value = accessor.invoke(object);
                 if (component.getType().isPrimitive()) {
                     kryo.writeObject(output, value);
+                } else if ((component.getType().getModifiers() & Modifier.FINAL) != 0) {
+                    kryo.writeObjectOrNull(output, value, component.getType());
                 } else {
                     kryo.writeClassAndObject(output, value);
                 }
@@ -38,6 +40,8 @@ public class RecordSerializer<T extends Record> extends Serializer<T> {
             RecordComponent component = recordComponents[i];
             if (component.getType().isPrimitive()) {
                 args[i] = kryo.readObject(input, component.getType());
+            } else if ((component.getType().getModifiers() & Modifier.FINAL) != 0) {
+                args[i] = kryo.readObjectOrNull(input, component.getType());
             } else {
                 args[i] = kryo.readClassAndObject(input);
             }

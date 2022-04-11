@@ -1,12 +1,11 @@
 package com.destrostudios.gametools.network.shared.serializers;
 
 import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import java.util.UUID;
 
-public class UuidSerializer extends Serializer<UUID> {
+public class UuidSerializer extends CopySerializer<UUID> {
 
     @Override
     public void write(Kryo kryo, Output output, UUID t) {
