@@ -22,7 +22,7 @@ public class RecordSerializer<T extends Record> extends Serializer<T> {
                 if (component.getType().isPrimitive()) {
                     kryo.writeObject(output, value);
                 } else {
-                    kryo.writeObjectOrNull(output, value, component.getType());
+                    kryo.writeClassAndObject(output, value);
                 }
             }
         } catch (Exception e) {
@@ -39,7 +39,7 @@ public class RecordSerializer<T extends Record> extends Serializer<T> {
             if (component.getType().isPrimitive()) {
                 args[i] = kryo.readObject(input, component.getType());
             } else {
-                args[i] = kryo.readObjectOrNull(input, component.getType());
+                args[i] = kryo.readClassAndObject(input);
             }
         }
         try {
