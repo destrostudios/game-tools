@@ -25,8 +25,8 @@ public class RecordSerializer<T extends Record> extends Serializer<T> {
                     kryo.writeObjectOrNull(output, value, component.getType());
                 }
             }
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to write " + object, e);
         }
     }
 
@@ -45,8 +45,8 @@ public class RecordSerializer<T extends Record> extends Serializer<T> {
         try {
             Constructor<T> constructor = type.getConstructor(Stream.of(recordComponents).map(RecordComponent::getType).toArray(Class[]::new));
             return constructor.newInstance(args);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read object of type " + type.getName(), e);
         }
     }
 }
