@@ -30,7 +30,7 @@ public class MctsBot<S extends BotGameState<A, T>, A, T, D> implements Bot<S, A,
     }
 
     public void stepRoot(BotActionReplay<A> action) {
-        rootNode = getChild(rootNode, action);
+        rootNode = rootNode == null ? null : getChild(rootNode, action);
         rootOutdated = false;
     }
 
