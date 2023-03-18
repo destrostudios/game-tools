@@ -16,7 +16,7 @@ public class MctsBot<S extends BotGameState<A, T>, A, T, D> implements Bot<S, A,
 
     private static final Logger LOG = LoggerFactory.getLogger(MctsBot.class);
 
-    private static final int MILLI_TO_NANO = 1_000_000;
+    private static final long MILLI_TO_NANO = 1_000_000;
 
     private final BotGameService<S, A, T, D> gameService;
     private final MctsBotSettings<S, A> settings;
@@ -62,7 +62,7 @@ public class MctsBot<S extends BotGameState<A, T>, A, T, D> implements Bot<S, A,
                 workers.add(new MctsBotWorker(gameService, data, settings, teamCount, rootNode, raveScores));
             }
             BooleanSupplier isActive;
-            int strength = settings.strength;
+            long strength = settings.strength;
             switch (settings.termination) {
                 case NODE_COUNT:
                     isActive = () -> rootNode.visits() < strength;
@@ -100,13 +100,6 @@ public class MctsBot<S extends BotGameState<A, T>, A, T, D> implements Bot<S, A,
             }
         }
         return moves;
-//        A selected = moves.get(0);
-//        float score = visits(rootNode, selected);
-//        int identicalMovesCount = 1;
-//        while (identicalMovesCount < moves.size() && visits(rootNode, moves.get(identicalMovesCount)) == score) {
-//            identicalMovesCount++;
-//        }
-//        return moves.get(settings.random.nextInt(identicalMovesCount));
     }
 
     private float visits(MctsNode<BotActionReplay<A>> node, A move) {
@@ -118,11 +111,6 @@ public class MctsBot<S extends BotGameState<A, T>, A, T, D> implements Bot<S, A,
             }
         }
         return sum;
-//        MctsNode<A> child = node.getChildOrDefault(move, null);
-//        if (child == null) {
-//            return 0;
-//        }
-//        return child.visits();
     }
 
     private MctsRaveScores initRaveScores(int teamCount) {
