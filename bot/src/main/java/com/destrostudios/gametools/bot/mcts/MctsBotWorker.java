@@ -31,7 +31,7 @@ class MctsBotWorker<S extends BotGameState<A, T>, A, T, D> {
     private final MctsNode<BotActionReplay<A>> rootNode;
     private final MctsRaveScores raveScores;
 
-    private S simulationGame;
+    private S simulationGame = null;
 
     public MctsBotWorker(BotGameService<S, A, T, D> service, D sourceGame, MctsBotSettings<S, A> settings, int teamCount, MctsNode<BotActionReplay<A>> rootNode, MctsRaveScores raveScores) {
         this.service = service;
@@ -50,7 +50,7 @@ class MctsBotWorker<S extends BotGameState<A, T>, A, T, D> {
         LOG.debug("worker started.");
         int iterations = 0;
         while (isActive.getAsBoolean()) {
-            simulationGame = service.deserialize(sourceGame);
+            simulationGame = service.deserialize(sourceGame, simulationGame);
             iteration(rootNode, raveScores);
             iterations++;
             if (Thread.interrupted()) {
