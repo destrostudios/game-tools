@@ -19,18 +19,19 @@ import com.esotericsoftware.kryonet.Server;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.function.Consumer;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GamesListIT {
 
     private ToolsServer server;
     private ToolsClient client;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         Server kryoServer = new Server();
         Consumer<Kryo> registerParams = kryo -> kryo.register(Connect4StartInfo.class);
@@ -51,7 +52,7 @@ public class GamesListIT {
         client.start(1000, "localhost", NetworkUtil.PORT);
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         client.stop();
         server.stop();
@@ -60,7 +61,8 @@ public class GamesListIT {
         client = null;
     }
 
-    @Test(timeout = 1000)
+    @Test
+    @Timeout(1)
     public void sampleGame() throws InterruptedException {
         LobbyClientModule<Connect4StartInfo> lobbyClient = client.getModule(LobbyClientModule.class);
         GameStartClientModule<Connect4StartInfo> startClient = client.getModule(GameStartClientModule.class);

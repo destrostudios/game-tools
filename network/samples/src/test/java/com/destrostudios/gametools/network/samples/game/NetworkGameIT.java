@@ -27,20 +27,21 @@ import java.io.IOException;
 import java.util.Random;
 import java.util.UUID;
 import java.util.function.Consumer;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class NetworkGameIT {
 
     private ToolsServer server;
     private ToolsClient client;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         Server kryoServer = new Server();
         GameService<Connect4Impl, Long> gameService = new Connect4Service();
@@ -67,7 +68,7 @@ public class NetworkGameIT {
         client.start(1000, "localhost", NetworkUtil.PORT);
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         client.stop();
         server.stop();
@@ -76,7 +77,8 @@ public class NetworkGameIT {
         client = null;
     }
 
-    @Test(timeout = 1000)
+    @Test
+    @Timeout(1)
     public void sampleGame() throws InterruptedException {
         GameClientModule<Connect4Impl, Long> gameClient = client.getModule(GameClientModule.class);
         GameStartClientModule<Connect4StartInfo> gameStartClientModule = client.getModule(GameStartClientModule.class);
@@ -101,7 +103,8 @@ public class NetworkGameIT {
         assertEquals(2L, game.getState().black());
     }
 
-    @Test(timeout = 1000)
+    @Test
+    @Timeout(1)
     public void rollbackAction() throws InterruptedException {
         GameClientModule<Connect4Impl, Long> gameClient = client.getModule(GameClientModule.class);
         GameStartClientModule<Connect4StartInfo> gameStartClientModule = client.getModule(GameStartClientModule.class);
@@ -126,7 +129,8 @@ public class NetworkGameIT {
         assertEquals(0L, game.getState().black());
     }
 
-    @Test(timeout = 1000)
+    @Test
+    @Timeout(1)
     public void recoverFromDesync() throws InterruptedException {
         GameClientModule<Connect4Impl, Long> gameClient = client.getModule(GameClientModule.class);
         GameStartClientModule<Connect4StartInfo> gameStartClientModule = client.getModule(GameStartClientModule.class);

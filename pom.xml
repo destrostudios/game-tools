@@ -3,7 +3,6 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>com.destrostudios.game-tools</groupId>
     <artifactId>game-tools</artifactId>
     <packaging>pom</packaging>
@@ -13,19 +12,16 @@
         <module>grid</module>
         <module>bot</module>
     </modules>
-
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <version.maven-assembly-plugin>3.1.1</version.maven-assembly-plugin>
-        <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
-        <version.maven-surefire-plugin>3.0.0-M5</version.maven-surefire-plugin>
-        <version.maven-source-plugin>3.2.0</version.maven-source-plugin>
-        <version.slf4j>2.0.0-alpha1</version.slf4j>
-        <version.junit>4.11</version.junit>
-        <version.mockito>1.9.5</version.mockito>
-        <version.auth-token>c7a6c8b4b9d79dac73aec617de4225e17c010405</version.auth-token>
+        <version.maven-assembly-plugin>3.7.1</version.maven-assembly-plugin>
+        <version.maven-compiler-plugin>3.13.0</version.maven-compiler-plugin>
+        <version.maven-surefire-plugin>3.5.0</version.maven-surefire-plugin>
+        <version.maven-source-plugin>3.3.1</version.maven-source-plugin>
+        <version.slf4j>2.0.16</version.slf4j>
+        <version.junit>5.11.0</version.junit>
+        <version.mockito>1.10.19</version.mockito>
+        <version.auth-token>0aa5a6624ecb80691c1b7859b06c6c1353ca6e6d</version.auth-token>
     </properties>
     <repositories>
         <repository>
@@ -33,30 +29,6 @@
             <url>https://jitpack.io</url>
         </repository>
     </repositories>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>${version.maven-source-plugin}</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${version.maven-surefire-plugin}</version>
-            </plugin>
-        </plugins>
-    </build>
-
     <dependencies>
         <dependency>
             <groupId>com.github.destrostudios</groupId>
@@ -71,8 +43,8 @@
         </dependency>
         <!--JUnit-->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
             <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
@@ -84,4 +56,35 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${version.maven-compiler-plugin}</version>
+                <configuration>
+                    <source>22</source>
+                    <target>22</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${version.maven-surefire-plugin}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${version.maven-source-plugin}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

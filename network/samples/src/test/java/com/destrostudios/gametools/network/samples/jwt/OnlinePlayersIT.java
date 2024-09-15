@@ -22,18 +22,20 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class OnlinePlayersIT {
 
     private ToolsServer server;
     private ToolsClient[] clients;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         NoValidateJwtService jwtService = new NoValidateJwtService();
 
@@ -49,7 +51,7 @@ public class OnlinePlayersIT {
         }
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         for (ToolsClient client : clients) {
             client.stop();
@@ -60,7 +62,8 @@ public class OnlinePlayersIT {
         clients = null;
     }
 
-    @Test(timeout = 1000)
+    @Test
+    @Timeout(1)
     public void alone() throws InterruptedException {
         BlockingMessageModule blockModule0 = clients[0].getModule(BlockingMessageModule.class);
         JwtClientModule jwtModule0 = clients[0].getModule(JwtClientModule.class);
@@ -72,7 +75,8 @@ public class OnlinePlayersIT {
         assertEquals(Collections.singletonList(user0), jwtModule0.getOnlineUsers());
     }
 
-    @Test(timeout = 1000)
+    @Test
+    @Timeout(1)
     public void two() throws InterruptedException {
         BlockingMessageModule blockModule0 = clients[0].getModule(BlockingMessageModule.class);
         JwtClientModule jwtModule0 = clients[0].getModule(JwtClientModule.class);
@@ -102,7 +106,8 @@ public class OnlinePlayersIT {
         assertEquals(expected, jwtModule1.getOnlineUsers());
     }
 
-    @Test(timeout = 1000)
+    @Test
+    @Timeout(1)
     public void multiConnect() throws InterruptedException {
         BlockingMessageModule blockModule0 = clients[0].getModule(BlockingMessageModule.class);
         JwtClientModule jwtModule0 = clients[0].getModule(JwtClientModule.class);
@@ -144,7 +149,8 @@ public class OnlinePlayersIT {
         assertEquals(expected, jwtModule1.getOnlineUsers());
     }
 
-    @Test(timeout = 1000)
+    @Test
+    @Timeout(1)
     public void disconnect() throws InterruptedException {
         BlockingMessageModule blockModule0 = clients[0].getModule(BlockingMessageModule.class);
         JwtClientModule jwtModule0 = clients[0].getModule(JwtClientModule.class);

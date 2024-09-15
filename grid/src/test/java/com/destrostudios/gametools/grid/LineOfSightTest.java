@@ -2,10 +2,10 @@ package com.destrostudios.gametools.grid;
 
 import java.util.List;
 import java.util.function.Predicate;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class LineOfSightTest {
 
@@ -17,8 +17,8 @@ public class LineOfSightTest {
         for (int i = 0; i < 8; i++) {
             Position source = permutate(3, 4, i);
             Position target = permutate(4, 5, i);
-            assertTrue(source + " -> " + target, lineOfSight.inLineOfSight(isSeeThrough, source, target));
-            assertTrue(target + " -> " + source, lineOfSight.inLineOfSight(isSeeThrough, target, source));
+            assertTrue(lineOfSight.inLineOfSight(isSeeThrough, source, target), source + " -> " + target);
+            assertTrue(lineOfSight.inLineOfSight(isSeeThrough, target, source), target + " -> " + source);
         }
     }
 
@@ -28,8 +28,8 @@ public class LineOfSightTest {
         for (int i = 0; i < 8; i++) {
             Position source = permutate(-4, 4, i);
             Position target = permutate(-4, 5, i);
-            assertTrue(source + " -> " + target, lineOfSight.inLineOfSight(isSeeThrough, source, target));
-            assertTrue(target + " -> " + source, lineOfSight.inLineOfSight(isSeeThrough, target, source));
+            assertTrue(lineOfSight.inLineOfSight(isSeeThrough, source, target), source + " -> " + target);
+            assertTrue(lineOfSight.inLineOfSight(isSeeThrough, target, source), target + " -> " + source);
         }
     }
 
@@ -40,8 +40,8 @@ public class LineOfSightTest {
             Predicate<Position> isSeeThrough = p -> position.equals(p);
             Position source = permutate(1, 1, i);
             Position target = permutate(3, 3, i);
-            assertTrue(source + " -> " + target, lineOfSight.inLineOfSight(isSeeThrough, source, target));
-            assertTrue(target + " -> " + source, lineOfSight.inLineOfSight(isSeeThrough, target, source));
+            assertTrue(lineOfSight.inLineOfSight(isSeeThrough, source, target), source + " -> " + target);
+            assertTrue(lineOfSight.inLineOfSight(isSeeThrough, target, source), target + " -> " + source);
         }
     }
 
@@ -52,8 +52,8 @@ public class LineOfSightTest {
             Predicate<Position> isSeeThrough = p -> !position.equals(p);
             Position source = permutate(1, 1, i);
             Position target = permutate(3, 3, i);
-            assertFalse(source + " -> " + target, lineOfSight.inLineOfSight(isSeeThrough, source, target));
-            assertFalse(target + " -> " + source, lineOfSight.inLineOfSight(isSeeThrough, target, source));
+            assertFalse(lineOfSight.inLineOfSight(isSeeThrough, source, target), source + " -> " + target);
+            assertFalse(lineOfSight.inLineOfSight(isSeeThrough, target, source), target + " -> " + source);
         }
     }
 
@@ -74,8 +74,8 @@ public class LineOfSightTest {
             Predicate<Position> isSeeThrough = p -> traversedPositions.contains(p);
             Position source = permutate(-2, 1, i);
             Position target = permutate(4, -2, i);
-            assertTrue(source + " -> " + target, lineOfSight.inLineOfSight(isSeeThrough, source, target));
-            assertTrue(target + " -> " + source, lineOfSight.inLineOfSight(isSeeThrough, target, source));
+            assertTrue(lineOfSight.inLineOfSight(isSeeThrough, source, target), source + " -> " + target);
+            assertTrue(lineOfSight.inLineOfSight(isSeeThrough, target, source), target + " -> " + source);
         }
     }
 
@@ -96,8 +96,8 @@ public class LineOfSightTest {
                 Predicate<Position> isSeeThrough = p -> !blocked.equals(p);
                 Position source = permutate(-2, -1, i);
                 Position target = permutate(4, 2, i);
-                assertFalse(source + " -> " + target + " blocked: " + blocked, lineOfSight.inLineOfSight(isSeeThrough, source, target));
-                assertFalse(target + " -> " + source + " blocked: " + blocked, lineOfSight.inLineOfSight(isSeeThrough, target, source));
+                assertFalse(lineOfSight.inLineOfSight(isSeeThrough, source, target), source + " -> " + target + " blocked: " + blocked);
+                assertFalse(lineOfSight.inLineOfSight(isSeeThrough, target, source), target + " -> " + source + " blocked: " + blocked);
             }
         }
     }
